@@ -152,4 +152,4 @@ WHERE name IN (
         OR continent LIKE '%America'
 ) AND metroarea_pop IS NOT NULL
 ORDER BY city_perc DESC
-LIMIT 10
+LIMIT 10;
