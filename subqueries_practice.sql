@@ -82,7 +82,7 @@ SELECT
     count(name) AS lang_num  
 FROM languages
 GROUP BY code
-ORDER BY lang_num DESC
+ORDER BY lang_num DESC;
 
 --Method #2: Subquery within SELECT
 SELECT
@@ -95,7 +95,7 @@ FROM
   GROUP BY code) AS sub
 -- Where codes match
 WHERE countries.code=sub.code
-ORDER BY lang_num DESC
+ORDER BY lang_num DESC;
 
 -- Identify the 2015 inflation and unemployment rate for Republics and Monarchies
 
