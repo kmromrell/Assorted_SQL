@@ -1,24 +1,24 @@
--- Count the number of matches that FC Schalke 04 and FC Bayern Munich heve each played at home using the data split across the filtered teams_germany and matches_germany datasets.
+/* Barcelona and Real Madrid have been rival teams for more than 80 years. Matches between these two teams are given the name El Clásico (The Classic). In this exercise, you will query a list of matches played between these two rivals.
 
--- Identifying the corresponding API id
+You will notice in Step 2 that when you have multiple logical conditions in a CASE statement, you may quickly end up with a large number of WHEN clauses to logically test every outcome you are interested in. It's important to make sure you don't accidentally exclude key information in your ELSE clause.
 
-SELECT
-	team_api_Id,
-	team_long_name
-FROM teams_germany
-WHERE team_long_name IN ('FC Schalke 04', 'FC Bayern Munich');
+In this exercise, you will retrieve information about matches played between Barcelona (id = 8634) and Real Madrid (id = 8633). Note that the query you are provided with already identifies the Clásico matches using a filter in the WHERE clause. */
 
--- Counting the numbers of each team's home games
+-- Setting up home/away columns
 
-SELECT
-    CASE 
-        WHEN hometeam_Id=10189 THEN 'FC Schalke 04'
-        WHEN hometeam_Id=9823 THEN 'FC Bayern Munich'
-        ELSE 'Other'
-    END AS home_team,
-    COUNT(Id) AS total_matches
-FROM matches_germany
-GROUP BY home_team;
+SELECT 
+	date,
+	CASE 
+            WHEN hometeam_id = 8634 THEN 'FC Barcelona' 
+            ELSE 'Real Madrid CF'
+        END AS home,
+	CASE 
+            WHEN awayteam_id = 8634 THEN 'FC Barcelona' 
+            ELSE 'Real Madrid CF'
+        END AS away
+FROM matches_spain
+WHERE (awayteam_id = 8634 OR hometeam_id = 8634)
+      AND (awayteam_id = 8633 OR hometeam_id = 8633);
 
 /*Build a query that identifies a match's winner, identifies the identity of the opponent, and finally filters for Barcelona as the home team. Complete the query in multiple steps to allow you to watch your results take shape with each new piece of information.
 
@@ -112,9 +112,33 @@ SELECT
 	t.team_long_name AS opponent,
 	CASE
 		WHEN m.home_goal<m.away_goal THEN 'Barcelona win!'
-		WHEN m.home_goal>m.away_goal THEN 'Barcelona loss :('			ELSE 'Tie'
+		WHEN m.home_goal>m.away_goal THEN 'Barcelona loss :('			
+		ELSE 'Tie'
 	END AS outcome
 FROM matches_spain AS m
 LEFT JOIN teams_spain AS t
 	ON m.hometeam_Id=t.team_api_Id
 WHERE m.awayteam_Id=8634;
+
+-- Count the number of matches that FC Schalke 04 and FC Bayern Munich heve each played at home using the data split across the filtered teams_germany and matches_germany datasets.
+
+-- Identifying the corresponding API id
+
+SELECT
+	team_api_Id,
+	team_long_name
+FROM teams_germany
+WHERE team_long_name IN ('FC Schalke 04', 'FC Bayern Munich');
+
+-- Counting the numbers of each team's home games
+
+SELECT
+    CASE 
+        WHEN hometeam_Id=10189 THEN 'FC Schalke 04'
+        WHEN hometeam_Id=9823 THEN 'FC Bayern Munich'
+        ELSE 'Other'
+    END AS home_team,
+    COUNT(Id) AS total_matches
+FROM matches_germany
+GROUP BY home_team;
+
