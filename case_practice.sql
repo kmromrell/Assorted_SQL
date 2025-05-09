@@ -1,36 +1,5 @@
 /* The following questions are queried using data collected about soccer matches in Europe. There are three tables in the data set: country (with just the country code to country), teams (giving the team code and long/short names), and matches (with all the match data, including who's playing (by code), home/away score, etc.). This data was then partitioned off by country, resulting in tables for each country (e.g., matches_spain, teams_germany, etc.). The following queries were used to answer the given questions. I've listed the queries in reverse order of difficulty (focusing on the full-data queries first and then looking at the country based ones). */
 
--- Calculate the percentage of ties tht occur in each country, separated by the 2013-14 and 2014-15 seasons.
-
-SELECT 
-	c.name AS country,
-	ROUND(AVG(CASE WHEN m.season='2013/2014' AND m.home_goal = m.away_goal THEN 1
-			WHEN m.season='2013/2014' AND m.home_goal != m.away_goal THEN 0
-			END), 2) AS pct_ties_2013_2014,
-	ROUND(AVG(CASE WHEN m.season='2014/2015' AND m.home_goal = m.away_goal THEN 1
-			WHEN m.season='2014/2015' AND m.home_goal != m.away_goal THEN 0
-			END), 2) AS pct_ties_2014_2015
-FROM country AS c
-LEFT JOIN matches AS m
-	ON c.id = m.country_id
-GROUP BY country;
-
--- Count of home wins, away wins, and ties in each country
-
-SELECT 
-    c.name AS country,
-    -- Count the home wins, away wins, and ties in each country
-	AVG(CASE WHEN m.home_goal > m.away_goal THEN m.id 
-        END) AS home_wins,
-	AVG(CASE WHEN m.home_goal < m.away_goal THEN m.id 
-        END) AS away_wins,
-	AVG (CASE WHEN m.home_goal = m.away_goal THEN m.id 
-        END) AS ties
-FROM country AS c
-LEFT JOIN matches AS m
-	ON c.id = m.country_id
-GROUP BY country;
-
 -- Identify the number of matches played by each country during the three different seasons.
 
 -- Method #1: Using CASE (all dialects)
@@ -69,6 +38,46 @@ SELECT
 FROM country AS c 
 LEFT JOIN match AS m 
 	ON c.id=m.country_id
+GROUP BY country;
+
+-- Count of home wins, away wins, and ties in each country
+
+SELECT 
+    c.name AS country,
+	COUNT(
+		CASE 
+			WHEN m.home_goal > m.away_goal THEN m.id 
+       	END) AS home_wins,
+	COUNT(
+		CASE 
+			WHEN m.home_goal < m.away_goal THEN m.id 
+        END) AS away_wins,
+	COUNT(
+		CASE 
+			WHEN m.home_goal = m.away_goal THEN m.id 
+        END) AS ties
+FROM country AS c
+LEFT JOIN matches AS m
+	ON c.id = m.country_id
+GROUP BY country;
+
+-- Calculate the percentage of ties the occur in each country, separated by the 2013-14 and 2014-15 seasons.
+
+SELECT 
+	c.name AS country,
+	ROUND(AVG(
+		CASE 
+			WHEN m.season='2013/2014' AND m.home_goal = m.away_goal THEN 1
+			WHEN m.season='2013/2014' AND m.home_goal != m.away_goal THEN 0
+		END), 2) AS pct_ties_2013_2014,
+	ROUND(AVG(
+		CASE 
+			WHEN m.season='2014/2015' AND m.home_goal = m.away_goal THEN 1
+			WHEN m.season='2014/2015' AND m.home_goal != m.away_goal THEN 0
+		END), 2) AS pct_ties_2014_2015
+FROM country AS c
+LEFT JOIN matches AS m
+	ON c.id = m.country_id
 GROUP BY country;
 
 -- Now total only the home games within each country
