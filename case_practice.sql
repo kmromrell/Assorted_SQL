@@ -50,12 +50,12 @@ SELECT
 		END 
 	) AS matches_2013_2014,COUNT(
 		CASE
-			WHEN m.season='2013/2014' THEN m.ID
+			WHEN m.season='2014/2015' THEN m.ID
 			ELSE NULL
 		END 
 	) AS matches_2014_2015
 FROM country AS c 
-LEFT JOIN match AS m 
+LEFT JOIN matches AS m 
 	ON c.id=m.country_id
 GROUP BY country
 
@@ -134,7 +134,7 @@ WHERE
     home_goal>away_goal AND hometeam_id=9857 
     OR home_goal<away_goal AND awayteam_id=9857
 
-/* Query a list of matches played between the two rivals, Barcelona and Real Madrid, in El Clásico matches. Retrieve information about matches played between Barcelona (id = 8634) and Real Madrid (id = 8633). In games that they played, indicate who was the home team, who was the away team, and who won. */
+-- Query a list of matches played between the two rivals, Barcelona and Real Madrid, in El Clásico matches, indicating who was home/away, and won in each.
 
 WITH el_clasico AS (
   SELECT 
@@ -151,7 +151,7 @@ WITH el_clasico AS (
     away_goal
   FROM matches_spain
   WHERE (awayteam_id = 8634 OR hometeam_id = 8634)
-      AND (awayteam_id = 8633 OR hometeam_id = 8633)
+      AND (awayteam_id = 8633 OR hometeam_id = 8633))
 
 SELECT
   date,
@@ -165,14 +165,14 @@ SELECT
 FROM el_clasico
 ORDER BY date;
 
-/*Build a query that identifies the win/loss status of Barcelona's 2011/2012 matches.The matches_spain table currently contains Barcelona's matches from the 2011/2012 season, and has two key columns, hometeam_id and awayteam_id, that can be joined with the teams_spain table. However, you can only join teams_spain to one column at a time.*/
+-- Identify the win/loss status of Barcelona's matches.
 
 SELECT
 	m.date,
 	t.team_long_name AS opponent,
 	CASE
-		WHEN m.home_goal<m.away_goal THEN 'Barcelona win'
-		WHEN m.home_goal>m.away_goal THEN 'Barcelona loss'
+		WHEN m.home_goal>m.away_goal THEN 'Barcelona win'
+		WHEN m.home_goal<m.away_goal THEN 'Barcelona loss'
 		ELSE 'Tie'
 	END AS outcome
 FROM matches_spain AS m
@@ -192,15 +192,15 @@ SELECT
 	END AS outcome
 FROM matches_spain AS m
 LEFT JOIN teams_spain AS t
-	ON m.hometeam_Id=t.team_api_Id
-WHERE m.awayteam_Id=8634;
+	ON m.hometeam_id=t.team_api_Id
+WHERE m.awayteam_id=8634;
 
--- Count the number of matches that FC Schalke 04 and FC Bayern Munich heve each played at home using the data split across the filtered teams_germany and matches_germany datasets.
+-- Count the number of matches that FC Schalke 04 and FC Bayern Munich have each played at home using the data split across the filtered teams_germany and matches_germany datasets.
 
 -- Identifying the corresponding API id
 
 SELECT
-	team_api_Id,
+	team_api_id,
 	team_long_name
 FROM teams_germany
 WHERE team_long_name IN ('FC Schalke 04', 'FC Bayern Munich');
@@ -209,11 +209,11 @@ WHERE team_long_name IN ('FC Schalke 04', 'FC Bayern Munich');
 
 SELECT
     CASE 
-        WHEN hometeam_Id=10189 THEN 'FC Schalke 04'
-        WHEN hometeam_Id=9823 THEN 'FC Bayern Munich'
+        WHEN hometeam_id=10189 THEN 'FC Schalke 04'
+        WHEN hometeam_id=9823 THEN 'FC Bayern Munich'
         ELSE 'Other'
     END AS home_team,
-    COUNT(Id) AS total_matches
+    COUNT(id) AS total_matches
 FROM matches_germany
 GROUP BY home_team;
 
