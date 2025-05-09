@@ -1,3 +1,44 @@
+-- Identifying the number of matches played by each country during the three different seasons.
+
+-- Method #1: Using CASE (all dialects)
+
+SELECT
+	c.name AS country,
+	COUNT(
+		CASE
+			WHEN m.season='2012/2013' THEN m.ID
+			ELSE NULL
+		END 
+	) AS matches_2012_2013,
+	COUNT(
+		CASE
+			WHEN m.season='2013/2014' THEN m.ID
+			ELSE NULL
+		END 
+	) AS matches_2013_2014,COUNT(
+		CASE
+			WHEN m.season='2013/2014' THEN m.ID
+			ELSE NULL
+		END 
+	) AS matches_2014_2015
+FROM country AS c 
+LEFT JOIN match AS m 
+	ON c.id=m.country_id
+GROUP BY country
+
+-- Method #2: Using FILTER (not available in MySQL)
+
+SELECT
+	c.name AS country,
+	COUNT(m.season) FILTER(WHERE m.season='2012/2013') AS matches_2012_2013,
+	COUNT(m.season) FILTER(WHERE m.season='2013/2014') AS matches_2013_2014,
+	COUNT(m.season) FILTER(WHERE m.season='2014/2015') AS matches_2014_2015
+FROM country AS c 
+LEFT JOIN match AS m 
+	ON c.id=m.country_id
+GROUP BY country
+
+
 -- Identify matches in which Bologna won and specify if it was at home or away
 
 SELECT
