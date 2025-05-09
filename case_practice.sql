@@ -1,3 +1,41 @@
+-- Identify matches in which Bologna won and specify if it was at home or away
+
+SELECT
+	team_long_name,
+	team_api_id
+FROM teams_italy
+WHERE team_long_name='Bologna';
+
+-- Identify the date/season of Balogna's winning matches
+
+-- Using CASE as directed
+SELECT 
+	season,
+    date,
+	home_goal,
+	away_goal
+FROM matches_italy
+WHERE 
+-- Exclude games not won by Bologna
+	CASE WHEN hometeam_id = 9857 AND home_goal > away_goal THEN 'Bologna Win'
+		WHEN awayteam_id = 9857 AND away_goal > home_goal THEN 'Bologna Win' 
+		END IS NOT NULL;
+
+
+-- Clearer way to code it with just boolean operators
+
+SELECT 
+    season,
+    date,
+    home_goal,
+    away_goal
+FROM matches_italy
+WHERE 
+    home_goal>away_goal AND hometeam_id=9857 
+    OR home_goal<away_goal AND awayteam_id=9857
+
+
+
 /* Query a list of matches played between the two rivals, Barcelona and Real Madrid, in El Clásico matches. Retrieve information about matches played between Barcelona (id = 8634) and Real Madrid (id = 8633). In games that they played, indicate who was the home team, who was the away team, and who won. */
 
 WITH el_clasico AS (
