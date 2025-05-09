@@ -13,8 +13,38 @@ SELECT
         ELSE 'Real Madrid CF'
     END AS away
 FROM matches_spain
-WHERE (awayteam_id = 8634 OR hometeam_id = 8634)
-      AND (awayteam_id = 8633 OR hometeam_id = 8633);
+WHERE awayteam_id IN (8634, 8634)
+      AND hometeam_id IN (8633, 8633);
+
+-- To indicate the winner/loser of the game (using CTE)
+WITH el_clasico AS (
+  SELECT 
+    date,
+    CASE 
+        WHEN hometeam_id = 8634 THEN 'FC Barcelona' 
+        ELSE 'Real Madrid CF'
+    END AS home,
+    CASE 
+        WHEN awayteam_id = 8634 THEN 'FC Barcelona' 
+        ELSE 'Real Madrid CF'
+    END AS away,
+    home_goal,
+    away_goal
+  FROM matches_spain
+  WHERE (awayteam_id = 8634 OR hometeam_id = 8634)
+      AND (awayteam_id = 8633 OR hometeam_id = 8633)
+
+SELECT
+  date,
+  home,
+  away,
+  CASE
+    WHEN home_goal > away_goal THEN home
+    WHEN away_goal > home_goal THEN away
+    ELSE 'Tie'
+  END AS victor
+FROM el_clasico
+ORDER BY date;
 
 /*Build a query that identifies a match's winner, identifies the identity of the opponent, and finally filters for Barcelona as the home team. Complete the query in multiple steps to allow you to watch your results take shape with each new piece of information.
 
