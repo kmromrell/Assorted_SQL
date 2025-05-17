@@ -1,6 +1,39 @@
--- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. This is practicing subqueries in the "FROM" clause.
+-- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. 
 
 
+-- Calculate the average number of goals per match in each country's league and its difference from the overall average, both in 2013-2014
+
+SELECT
+    l.name AS league,
+    round(avg(m.home_goal+m.away_goal), 2) AS avg_goals,
+    round(avg(m.home_goal+m.away_goal)-(    
+        SELECT
+            (avg(home_goal+away_goal))
+        FROM match
+        WHERE season='2013/2014'
+    ), 2) AS diff
+FROM league AS l 
+LEFT JOIN match AS m 
+    ON l.country_id=m.country_id
+WHERE season='2013/2014' 
+GROUP BY l.name;
+
+-- Calculate the average number of goals per match in each country's league as compared to the overall average
+
+SELECT
+    l.name AS league,
+    round(avg(m.home_goal+m.away_goal), 2) AS avg_goals,
+    round(avg(m.home_goal+m.away_goal)-(    
+        SELECT
+            (avg(home_goal+away_goal))
+        FROM match
+        WHERE season='2013/2014'
+    ), 2) AS diff
+FROM league AS l 
+LEFT JOIN match AS m 
+    ON l.country_id=m.country_id
+WHERE season='2013/2014' 
+GROUP BY l.name;
 
 
 -- Identify the number of matches played by each country in which there were a total of 10 or more goals.
