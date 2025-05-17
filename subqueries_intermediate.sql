@@ -1,5 +1,6 @@
 -- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. 
 
+-- SUBQUERIES IN SELECT CLAUSE
 
 -- Calculate the average number of goals per match in each country's league and its difference from the overall average, both in 2013-2014
 
@@ -35,6 +36,9 @@ LEFT JOIN match AS m
 WHERE season='2013/2014' 
 GROUP BY l.name;
 
+
+
+-- SUBQUERIES IN SELECT CLAUSE
 
 -- Identify the number of matches played by each country in which there were a total of 10 or more goals.
 
@@ -82,7 +86,9 @@ LEFT JOIN country AS c
     ON m.country_id = c.id
 WHERE (m.home_goal + m.away_goal) >=10;
 
--- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. This is practicing subqueries in the "WHERE" clause.
+
+
+-- SUBQUERIES IN WHERE CLAUSE
 
 -- Identify the teams who have, in a single home game, scored 8 or more points
 
