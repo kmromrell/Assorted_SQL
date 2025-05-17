@@ -8,6 +8,7 @@ SELECT
     l.name AS league,
     round(avg(m.home_goal+m.away_goal), 2) AS avg_goals,
     round(avg(m.home_goal+m.away_goal)-(    
+-- Subquery calculates average total goals for 2013-14 season
         SELECT
             (avg(home_goal+away_goal))
         FROM match
@@ -24,7 +25,8 @@ GROUP BY l.name;
 SELECT
     l.name AS league,
     round(avg(m.home_goal+m.away_goal), 2) AS avg_goals,
-    round(avg(m.home_goal+m.away_goal)-(    
+    round(avg(m.home_goal+m.away_goal)-(  
+-- Subquery calculates average total goals for 2013-14 season
         SELECT
             (avg(home_goal+away_goal))
         FROM match
@@ -47,6 +49,7 @@ SELECT
     count(name) AS matches
 FROM country AS c 
 INNER JOIN (
+-- Subquery filters out any games without total scores of more than or equal to 10 goals
     SELECT 
         country_id
     FROM match
@@ -65,6 +68,7 @@ SELECT
     home_goal,
     away_goal
 FROM 
+-- Subquery calculates/saves the total_goals for each match so the outside WHERE statement can use it
 	(SELECT c.name AS country, 
      	    m.date, 
      		m.home_goal, 
@@ -72,7 +76,7 @@ FROM
            (m.home_goal + m.away_goal) AS total_goals
     FROM match AS m
     LEFT JOIN country AS c
-    ON m.country_id = c.id) AS subq
+    ON m.country_id = c.id) AS sub
 WHERE total_goals >=10;
 
 -- Method #2: Just putting the calculation in the WHERE clause
@@ -93,27 +97,11 @@ WHERE (m.home_goal + m.away_goal) >=10;
 -- Identify the teams who have, in a single home game, scored 8 or more points
 
 SELECT 
-FROM country AS
-
-WHERE
-
-
-SELECT 
-	t.team AS team,
-	avg(m.home_goal) AS home_avg
-FROM match AS m 
-LEFT JOIN team AS t
-	ON m.hometeam_id=t.team_api_id
-WHERE season='2011-2012'
-GROUP BY t.team
-ORDER BY home_avg DESC
-LIMIT 3;
-
-SELECT 
 	team_long_name,
 	team_short_name
 FROM team
 WHERE team_api_id IN (
+-- Subquery filters for teams who have scored more than 8 goals at home
 	SELECT hometeam_id
 	FROM match 
 	WHERE home_goal>=8
@@ -126,7 +114,8 @@ SELECT
 	team_long_name,
 	team_short_name
 FROM team
-WHERE team_api_id<> NOT IN
+WHERE team_api_id<> NOT IN (
+ -- Subquery filters to show teams that have played home games according to the match table
 	SELECT DISTINCT hometeam_id
 	FROM match
 );
@@ -139,6 +128,7 @@ SELECT
 	away_goal
 FROM matches_2013_2014
 WHERE (home_goal+away_goal)>(
+-- Subquery filters to show matches where the total score was over 3 times the average total score
 	SELECT avg(home_goal+away_goal)*3
 	FROM matches_2013_2014
 );
