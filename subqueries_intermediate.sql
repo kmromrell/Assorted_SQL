@@ -1,5 +1,76 @@
 -- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. 
 
+-- SUBQUERIES IN ALL CLAUSES
+
+-- Calculate the average goals scored in each stage as compared to the overall average, keeping only the stages in which the stage's average goals is greater than overall average goals
+
+SELECT
+    s.stage,
+    ROUND(s.avg_goals, 2) AS avg_goals,
+-- Subquery to also list the overall average not aggregated by stage
+    ROUND((
+		SELECT AVG(home_goal+away_goal) AS overall_avg 
+		FROM match 
+		WHERE season='2012/2013'
+	), 2)
+FROM (
+-- Subquery to pull from an aggregated table
+	SELECT 
+		stage,
+		AVG(home_goal+away_goal) AS avg_goals
+	FROM match 
+	WHERE season='2012/2013'
+	GROUP BY stage 
+) AS s
+WHERE s.avg_goals>(
+-- Subquery to filter to only stages that are above the average
+	SELECT avg(home_goal+away_goal)
+	FROM match 
+	WHERE season='2012/2013'
+)
+ORDER BY s.stage ASC;
+
+-- Calculate the average goals scored in each stage, keeping only the stages in which the stage's average goals is greater than overall average goals
+
+SELECT
+    s.stage,
+    ROUND(s.avg_goals, 2) AS avg_goals,
+FROM (
+-- Subquery to pull from an aggregated table
+	SELECT 
+		stage,
+		AVG(home_goal+away_goal) AS avg_goals
+	FROM match 
+	WHERE season='2012/2013'
+	GROUP BY stage 
+) AS s
+WHERE s.avg_goals>(
+-- Subquery to filter to only stages that are above the average
+	SELECT avg(home_goal+away_goal)
+	FROM match 
+	WHERE season='2012/2013'
+)
+ORDER BY s.stage ASC;
+
+-- Create a data set listing the average total of goals in each match stage in the 2012/2013 season as compared to the overall goals
+
+SELECT
+    stage,
+    ROUND(avg(home_goal+away_goal), 2) AS avg_goals,
+    ROUND((
+-- Subquery to get overall average outside of group by
+        SELECT avg(home_goal+away_goal) 
+        FROM match 
+        WHERE season='2012/2013'), 2) AS overall_goals
+FROM match
+WHERE season='2012/2013'
+GROUP BY stage
+ORDER BY stage;
+
+
+
+
+
 -- SUBQUERIES IN SELECT CLAUSE
 
 -- Calculate the average number of goals per match in each country's league and its difference from the overall average, both in 2013-2014
