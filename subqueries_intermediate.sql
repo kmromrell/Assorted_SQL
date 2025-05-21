@@ -1,5 +1,38 @@
 -- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. 
 
+-- CORRELATED SUBQUERIES
+
+-- Use a correlated subquery to identify matches with total scores equaling the max number of goals in a match
+
+SELECT
+    main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main
+WHERE (main.home_goal+main.away_goal)=(
+    SELECT MAX(sub.home_goal+sub.away_goal)
+    FROM match AS sub
+    WHERE 
+        main.country_id=sub.country_id
+        AND main.season=sub.season
+);
+
+
+-- Use a correlated subquery to identify matches with scores that are abnormally high -- more than three times the average match score
+
+SELECT
+    main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main 
+WHERE (home_goal+away_goal)>(
+    SELECT avg((sub.home_goal+sub.away_goal)*3)
+    FROM match AS sub
+    WHERE main.country_id=sub.country_id
+);
+
 -- SUBQUERIES IN ALL CLAUSES
 
 -- Calculate the average goals scored in each stage as compared to the overall average, keeping only the stages in which the stage's average goals is greater than overall average goals
