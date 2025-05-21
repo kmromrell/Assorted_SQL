@@ -1,5 +1,61 @@
 -- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. 
 
+
+-- NESTED SUBQUERIES
+
+-- Use nested subqueries to answer this question: How do the average number of matches per season where a team scored 5 or more goals differ by country?
+
+SELECT
+  c.name AS country,
+  round(avg(outer_s.matches),2) AS avg_seasonal_high_scores
+FROM country AS c	
+LEFT JOIN (
+-- Use subquery to create derived table of a count of each country's total number of high scoring games
+  SELECT
+    country_id,
+    season,
+    count(id) AS matches
+  FROM (
+-- Use nested subquery to create derived table of matches with one side's score as 5 or more
+    SELECT 
+      country_id,
+      season,
+      id
+    FROM match
+    WHERE 
+      home_goal>=5
+      OR away_goal>=5
+  ) AS sub
+  GROUP BY 
+    country_id,
+    season
+) AS outer_s
+  ON c.id=outer_s.country_id
+GROUP BY country;
+
+-- Use nested subqueries to identify the max number of goals in each season, the max number of goals overall, and the max number goals scored in July.
+
+SELECT
+    season,
+    MAX(home_goal+away_goal) AS max_goals,
+-- Get max goals for all matches
+    (SELECT MAX(home_goal+away_goal) FROM match) AS overall_max_goals,
+-- Get max goals for matches in July
+    (
+        SELECT MAX(home_goal+away_goal) 
+        FROM match 
+        WHERE id IN (
+            SELECT id
+            FROM match
+            WHERE EXTRACT(MONTH FROM date)=07
+        )
+    ) AS july_max_goals
+FROM match
+GROUP BY season;
+
+
+
+
 -- CORRELATED SUBQUERIES
 
 -- Use a correlated subquery to identify matches with total scores equaling the max number of goals in a match
