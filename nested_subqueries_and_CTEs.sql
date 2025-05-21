@@ -1,4 +1,90 @@
--- This practice is queried using filtered tables from the soccer database explaine din the "case_practice.sql" tab. 
+-- This practice is queried using datasets from the soccer database explained in the "case_practice.sql" tab. 
+
+-- CTEs
+
+-- Use a CTE (and potentially subquery) to identify the average total goals achieved in August of 2013 by league
+
+-- Method #1: Clearer way
+
+WITH match_list AS (
+  SELECT country_id,
+  (home_goal+away_goal) AS total_goals
+  FROM match
+  WHERE 
+    EXTRACT(MONTH FROM date)=08
+    AND season='2013/2014'
+)
+
+SELECT 
+  l.name AS league,
+  round(avg(total_goals), 2) AS aug_2013_avg_goals
+FROM match_list
+LEFT JOIN league AS l 
+  USING(country_id)
+GROUP BY l.name;
+
+-- Method #2: CTE with subquery (what datacamp wanted me to do)
+
+WITH match_list AS (
+  SELECT country_id,
+  (home_goal+away_goal) AS total_goals
+  FROM match
+  WHERE id IN (
+       SELECT id
+       FROM match
+       WHERE season='2013/2014' AND EXTRACT(MONTH FROM date)=08)
+)
+
+SELECT 
+  l.name AS league,
+  round(avg(total_goals), 2) AS aug_2013_avg_goals
+FROM match_list
+LEFT JOIN league AS l 
+  USING(country_id)
+GROUP BY l.name;
+
+-- Use a CTE to find the number of times each league has played in matches with 10 or more goals
+
+-- Method #1: Join in the main query
+
+WITH match_list AS (
+    SELECT country_id, id
+    FROM match
+    WHERE (home_goal+away_goal)>=10
+)
+
+SELECT
+    l.name AS league,
+    COUNT(match_list.id) AS matches
+FROM league AS l
+LEFT JOIN match_list
+    ON l.country_id=match_list.country_id
+GROUP BY league;
+
+-- METHOD #2: Join in the CTE
+
+WITH match_list AS (
+  SELECT
+    l.name AS league,
+    date,
+    home_goal,
+    away_goal,
+    (home_goal+away_goal) AS total_goals
+  FROM match AS m 
+  LEFT JOIN league AS l 
+    USING(country_id)
+);
+
+-- Use a CTE to find the average number of total goals scored in games in August of the 2013-2014 season by league
+
+SELECT 
+  league,
+  date,
+  home_goal,
+  away_goal
+FROM match_list
+WHERE total_goals>=10;
+
 
 
 -- NESTED SUBQUERIES
