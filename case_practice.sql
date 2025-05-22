@@ -1,4 +1,8 @@
-/* The following questions are queried using data collected about soccer matches in Europe. There are three tables in the data set: country (with just the country code to country), teams (giving the team code and long/short names), and matches (with all the match data, including who's playing (by code), home/away score, etc.). This data was then partitioned off by country, resulting in tables for each country (e.g., matches_spain, teams_germany, etc.). The following queries were used to answer the given questions. I've listed the queries in reverse order of difficulty (focusing on the full-data queries first and then looking at the country based ones). */
+/* The following questions are queried using data collected about soccer matches in Europe. 
+There are three tables in the data set: country (with just the country code to country), teams (giving the team code and long/short names), and matches (with all the match data, including who's playing (by code), home/away score, etc.). 
+This data was then partitioned off by country, resulting in tables for each country (e.g., matches_spain, teams_germany, etc.). 
+The following queries were used to answer the given questions. 
+I've listed the queries in reverse order of difficulty (focusing on the full-data queries first and then looking at the country based ones). */
 
 -- Identify the number of matches played by each country during the three different seasons.
 
