@@ -1,6 +1,13 @@
--- This practice is queried using datasets from the soccer database explained in the "case_practice.sql" tab. 
+/* The following questions are queried using data collected about soccer matches in Europe. 
+There are four tables in the data set: country (with just the country code to country), teams (giving the team code and long/short names), leagues (giving the league inforamtion for the teams), and matches (with all the match data, including who's playing (by code), home/away score, etc.). 
+The following queries were used to answer the given questions. 
+I've listed the queries in reverse order of completion in order to show more advance queries first */
+
+
 
 -- Choosing between JOINs, subqueries, nested subqueries, and CTEs
+
+
 
  -- Create a table that includes the date, both team names, and both team scores using all the various methods you know (JOINs, subqueries, correlated subqueries, CTEs)
 
@@ -16,8 +23,7 @@ FROM match AS m
 LEFT JOIN team AS home
     ON m.hometeam_id=home.team_api_id
 LEFT JOIN team AS away
-    ON m.awayteam_id=away.team_api_id
-
+    ON m.awayteam_id=away.team_api_id;
 
 -- Method #1: Subqueries (with JOINs within) -- more complicated writing, simple computing
 
@@ -98,9 +104,13 @@ LEFT JOIN home
 LEFT JOIN away
     USING(id);
 
+
+
 -- CTEs
 
--- Use a CTE (and potentially subquery) to identify the average total goals achieved in August of 2013 by league
+
+
+-- Use a CTE to find the average number of total goals scored in games in August of the 2013-2014 season by league
 
 -- Method #1: Clearer way
 
@@ -157,7 +167,7 @@ SELECT
 FROM league AS l
 LEFT JOIN match_list
     ON l.country_id=match_list.country_id
-GROUP BY league;
+GROUP BY l.name;
 
 -- METHOD #2: Join in the CTE
 
@@ -171,9 +181,7 @@ WITH match_list AS (
   FROM match AS m 
   LEFT JOIN league AS l 
     USING(country_id)
-);
-
--- Use a CTE to find the average number of total goals scored in games in August of the 2013-2014 season by league
+)
 
 SELECT 
   league,
@@ -186,6 +194,8 @@ WHERE total_goals>=10;
 
 
 -- NESTED SUBQUERIES
+
+
 
 -- Use nested subqueries to answer this question: How do the average number of matches per season where a team scored 5 or more goals differ by country?
 
@@ -215,7 +225,7 @@ LEFT JOIN (
     season
 ) AS outer_s
   ON c.id=outer_s.country_id
-GROUP BY country;
+GROUP BY c.name;
 
 -- Use nested subqueries to identify the max number of goals in each season, the max number of goals overall, and the max number goals scored in July.
 
@@ -241,6 +251,9 @@ GROUP BY season;
 
 
 -- CORRELATED SUBQUERIES
+
+
+
 
 -- Use a correlated subquery to identify matches with total scores equaling the max number of goals in a match
 
@@ -275,7 +288,11 @@ WHERE (home_goal+away_goal)>(
     WHERE main.country_id=sub.country_id
 );
 
+
+
 -- SUBQUERIES IN ALL CLAUSES
+
+
 
 -- Calculate the average goals scored in each stage as compared to the overall average, keeping only the stages in which the stage's average goals is greater than overall average goals
 
@@ -388,6 +405,8 @@ GROUP BY l.name;
 
 -- SUBQUERIES IN SELECT CLAUSE
 
+
+
 -- Identify the number of matches played by each country in which there were a total of 10 or more goals.
 
 SELECT
@@ -439,6 +458,8 @@ WHERE (m.home_goal + m.away_goal) >=10;
 
 
 -- SUBQUERIES IN WHERE CLAUSE
+
+
 
 -- Identify the teams who have, in a single home game, scored 8 or more points
 
