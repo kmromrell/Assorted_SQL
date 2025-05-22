@@ -1,5 +1,103 @@
 -- This practice is queried using datasets from the soccer database explained in the "case_practice.sql" tab. 
 
+-- Choosing between JOINs, subqueries, nested subqueries, and CTEs
+
+ -- Create a table that includes the date, both team names, and both team scores using all the various methods you know (JOINs, subqueries, correlated subqueries, CTEs)
+
+-- My Method: Two JOINs together -- seems easiest? Less code, less computing?
+
+SELECT
+    m.date,
+    home.team_long_name AS hometeam,
+    away.team_long_name AS awayteam,
+    m.home_goal,
+    m.away_goal
+FROM match AS m 
+LEFT JOIN team AS home
+    ON m.hometeam_id=home.team_api_id
+LEFT JOIN team AS away
+    ON m.awayteam_id=away.team_api_id
+
+
+-- Method #1: Subqueries (with JOINs within) -- more complicated writing, simple computing
+
+SELECT 
+  m.date,
+  home.hometeam,
+  away.awayteam,
+  m.home_goal,
+  m.away_goal
+FROM match AS m
+LEFT JOIN (
+-- Using subquery to get hometeam names
+  SELECT 
+    m.id,
+    t.team_long_name AS hometeam
+  FROM match AS m 
+  LEFT JOIN team AS t 
+    ON m.hometeam_id = t.team_api_id
+) AS home
+  ON m.id=home.id
+LEFT JOIN (
+-- Using subquery to get awayteam names
+  SELECT 
+    m.id,
+    t.team_long_name AS awayteam
+  FROM match AS m 
+  LEFT JOIN team AS t 
+    ON m.awayteam_id = t.team_api_id
+) AS away
+  ON m.id=away.id;
+
+-- Method #2: Correlated subquery (more clearly written, more computing power needed)
+
+SELECT
+    m.date,
+    (
+        SELECT t.team_long_name 
+        FROM team AS t
+        WHERE t.team_api_id=m.hometeam_id
+    ) AS hometeam,
+    (
+        SELECT t.team_long_name 
+        FROM team AS t
+        WHERE t.team_api_id=m.awayteam_id
+    ) AS awayteam,
+    m.home_goal,
+    m.away_goal
+FROM match AS m;
+
+-- Method #3: CTEs
+
+WITH home AS (
+    SELECT 
+        m.id,
+        team_long_name AS hometeam
+    FROM team AS t 
+    INNER JOIN match AS m 
+        ON t.team_api_id=m.hometeam_id
+),
+away AS(
+   SELECT 
+        m.id,
+        team_long_name AS awayteam
+    FROM team AS t 
+    INNER JOIN match AS m 
+        ON t.team_api_id=m.awayteam_id 
+)
+
+SELECT
+    m.date,
+    home.hometeam AS hometeam,
+    away.awayteam AS awayteam,
+    m.home_goal,
+    m.away_goal
+FROM match AS m 
+LEFT JOIN home
+    USING(id)
+LEFT JOIN away
+    USING(id);
+
 -- CTEs
 
 -- Use a CTE (and potentially subquery) to identify the average total goals achieved in August of 2013 by league
@@ -153,6 +251,7 @@ SELECT
     main.away_goal
 FROM match AS main
 WHERE (main.home_goal+main.away_goal)=(
+-- Correlated subquery to find the matches whose total goals equal the max goals of the table
     SELECT MAX(sub.home_goal+sub.away_goal)
     FROM match AS sub
     WHERE 
@@ -170,6 +269,7 @@ SELECT
     main.away_goal
 FROM match AS main 
 WHERE (home_goal+away_goal)>(
+-- Correlated subquery to find the matches whose total goals were more than three times the average total goals
     SELECT avg((sub.home_goal+sub.away_goal)*3)
     FROM match AS sub
     WHERE main.country_id=sub.country_id
