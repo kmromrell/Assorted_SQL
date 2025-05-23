@@ -4,6 +4,31 @@ The following queries were used to answer the given questions.
 I've listed the queries in reverse order of completion in order to show more advance queries first */
 
 
+
+-- Create a dataset to compare Legia Warszawa's match scores against their home/away averages.
+
+SELECT 
+	CASE
+		WHEN hometeam_id=8673 THEN 'home'
+		WHEN awayteam_id=8673 THEN 'away'
+		END AS location,
+	CASE
+		WHEN hometeam_id=8673 THEN home_goal
+		WHEN awayteam_id=8673 THEN away_goal
+		END AS lw_score,
+	CASE
+		WHEN hometeam_id=8673 
+			THEN round(avg(home_goal) OVER(PARTITION BY hometeam_id), 2)
+		WHEN awayteam_id=8673 
+			THEN round(avg(away_goal) OVER(PARTITION BY awayteam_id), 2)
+		END AS avg_score
+FROM match
+WHERE 
+	hometeam_id=8673
+	OR awayteam_id=8673
+ORDER BY lw_score DESC;
+
+
 -- Create a data set of ranked matches according to which leagues, on average, score the most goals in a match.
 
 SELECT 
