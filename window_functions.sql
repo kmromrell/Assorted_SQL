@@ -3,11 +3,33 @@ There are four tables in the data set: country (with just the country code to co
 The following queries were used to answer the given questions. 
 I've listed the queries in reverse order of completion in order to show more advance queries first */
 
-
-
--- Create a dataset to compare Legia Warszawa's match scores against their home/away averages.
+-- Calculate the average number home and away goals scored Legia Warszawa, and their opponents, partitioned by the month in each season
 
 SELECT 
+	date,
+	season,
+	home_goal,
+	away_goal,
+	CASE WHEN hometeam_id = 8673 THEN 'home' 
+         ELSE 'away' END AS warsaw_location,
+	-- Calculate average goals partitioned by season and month
+    avg(home_goal) OVER(PARTITION BY season, 
+         	EXTRACT(MONTH FROM date)) AS season_mo_home,
+    avg(away_goal) OVER(PARTITION BY season, 
+         	EXTRACT(MONTH FROM date)) AS  season_mo_away
+FROM match
+WHERE 
+	hometeam_id = 8673
+    OR awayteam_id = 8673
+ORDER BY (home_goal + away_goal) DESC;
+
+-- Create a dataset to compare Legia Warszawa's match scores against their average score, partitioned by both home/away and season.
+
+-- Method #1: Using CASE to give LW's score, regardless of home or away, but then tell us if it's home/away
+
+SELECT 
+	date,
+	season,
 	CASE
 		WHEN hometeam_id=8673 THEN 'home'
 		WHEN awayteam_id=8673 THEN 'away'
@@ -17,16 +39,36 @@ SELECT
 		WHEN awayteam_id=8673 THEN away_goal
 		END AS lw_score,
 	CASE
+    -- Calculate the average goals scored partitioned by season, only including LW's scores
 		WHEN hometeam_id=8673 
-			THEN round(avg(home_goal) OVER(PARTITION BY hometeam_id), 2)
+			THEN round(avg(home_goal) OVER(PARTITION BY hometeam_id, season), 2)
 		WHEN awayteam_id=8673 
-			THEN round(avg(away_goal) OVER(PARTITION BY awayteam_id), 2)
+			THEN round(avg(away_goal) OVER(PARTITION BY awayteam_id, season), 2)
 		END AS avg_score
 FROM match
 WHERE 
 	hometeam_id=8673
 	OR awayteam_id=8673
-ORDER BY lw_score DESC;
+ORDER BY lw_score DESC, avg_score DESC;
+
+-- Method #2 (datacamp correct answer): Gives extraneous data about opponents' scores; partitioned data is corrupted by opponent's home/away score
+
+SELECT
+	date,
+	season,
+	home_goal,
+	away_goal,
+	CASE WHEN hometeam_id = 8673 THEN 'home' 
+		 ELSE 'away' END AS warsaw_location,
+    -- Calculate the average goals scored partitioned by season (including home/away teams that are opponents to LW)
+    avg(home_goal) OVER(PARTITION BY season) AS season_homeavg,
+    avg(away_goal) OVER(PARTITION BY season) AS season_awayavg
+FROM match
+-- Filter the data set for Legia Warszawa matches only
+WHERE 
+	hometeam_id=8673
+	OR awayteam_id=8673
+ORDER BY (home_goal + away_goal) DESC;
 
 
 -- Create a data set of ranked matches according to which leagues, on average, score the most goals in a match.
