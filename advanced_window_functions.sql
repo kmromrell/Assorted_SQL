@@ -1,4 +1,35 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. */
+-- Identify reigning champions (champion countries who win multiple olympics in a row) for the 60kg men's weighlifting event
+
+WITH last_year_champion AS(
+  SELECT
+    year,
+    champion,
+    LAG(champion, 1) OVER(ORDER BY year ASC) AS last_champion
+  FROM(
+    SELECT 
+    year,
+    country AS champion
+  FROM summer_medals 
+  WHERE 
+    sport = 'Weightlifting'
+    AND event = '69KG'
+    AND gender='Men'
+    AND medal='Gold'
+  ) AS weightlifting_gold
+)
+
+SELECT 
+  year,
+  champion,
+  CASE 
+    WHEN champion=last_champion THEN 'Reigning Champ'
+    ELSE NULL
+  END AS reigning_champ 
+FROM last_year_champion
+ORDER BY year
+
+
 -- Identify and rank the athletes who have earned the most medals in the summer olympics
 
 -- Method #1: My way (subquery in FROM, RANK)
