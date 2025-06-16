@@ -1,5 +1,67 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
+-- Rank medalists in Japan and Korea by number of medals they wons ince 2000
+
+WITH athlete_medals AS (
+  SELECT
+    country, 
+    athlete, 
+    COUNT(*) AS medals
+  FROM summer_medals
+  WHERE
+    country IN ('JPN', 'KOR')
+    AND year >= 2000
+  GROUP BY country, athlete
+  HAVING COUNT(*) > 1)
+
+SELECT
+  country,
+  athlete, 
+  DENSE_RANK() OVER (PARTITION BY country
+                ORDER BY medals DESC) AS rank_n
+FROM athlete_medals
+ORDER BY country ASC, rank_n ASC;
+
+-- Return all male gold medalists and the first athlete ordered by alphabetical order.
+
+WITH all_male_medalists AS (
+  SELECT DISTINCT
+    athlete
+  FROM summer_medals
+  WHERE 
+    gender='Men'
+    AND medal='Gold'
+)
+
+SELECT 
+  athlete,
+  FIRST_VALUE(athlete) OVER(
+    ORDER BY athlete ASC
+  ) AS first_athlete
+FROM all_male_medalists;
+
+-- Use LEAD to show the current discus champion and the champion 3 Olympics from then
+
+WITH discus_medalist AS (
+  SELECT 
+    year,
+    athlete AS champion
+  FROM summer_medals
+  WHERE 
+    medal='Gold'
+    AND Event = 'Discus Throw'
+    AND Gender = 'Women'
+    AND Year >= 2000
+)
+
+SELECT
+  year,
+  champion,
+  LEAD(champion, 3) OVER(ORDER BY year) AS future_champion
+FROM discus_medalist
+ORDER BY year;
+
+
 -- Identify reigning champions (champion countries who win multiple olympics in a row) for tennis, partitioned by gender and event
 
 WITH last_year_champion AS (
