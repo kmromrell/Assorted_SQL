@@ -1,4 +1,39 @@
-/* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. */
+/* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
+
+-- Identify reigning champions (champion countries who win multiple olympics in a row) for tennis, partitioned by gender and event
+
+WITH last_year_champion AS (
+  SELECT  
+    year,
+    champion,
+    gender,
+    event,
+    LAG(champion, 1) OVER(PARTITION BY gender, event ORDER BY year) AS last_champion
+  FROM (
+    SELECT DISTINCT
+      year,
+      gender,
+      event,
+      country AS champion
+    FROM summer_medals 
+    WHERE sport='Tennis'
+    AND medal='Gold'
+  ) AS tennis_gold
+) 
+
+SELECT 
+  year,
+  gender,
+  event,
+  champion,
+  CASE 
+    WHEN champion=last_champion THEN 'Reigning Champ'
+    ELSE NULL
+  END AS reigning_champ 
+FROM last_year_champion
+ORDER BY gender, event, year;
+
+
 -- Identify reigning champions (champion countries who win multiple olympics in a row) for the 60kg men's weighlifting event
 
 WITH last_year_champion AS(
