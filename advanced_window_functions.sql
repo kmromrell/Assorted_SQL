@@ -1,5 +1,27 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
+-- Identify American gold medalists from 2000 on, the total number of medals won by each athlete, and the total medals (sorted by athlete's name in alphabetical order).
+
+WITH athlete_medals AS (
+  SELECT
+    athlete,
+    count(medal) AS medals
+  FROM summer_medals 
+  WHERE
+    Country = 'USA' 
+    AND Medal = 'Gold'
+    AND Year >= 2000
+  GROUP BY athlete
+)
+
+SELECT 
+  athlete,
+  medals,
+  SUM(medals) OVER(ORDER BY athlete ASC)  AS total_medals
+FROM athlete_medals 
+ORDER BY athlete ASC; 
+
+
 -- Find aggregated average of each third of the highest medal-winning Olympians who have won more than one model
 
 WITH athlete_medals AS (
