@@ -1,5 +1,30 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
+
+-- Return the year, country, medals, and the maximum medals earned so far for each country (Korea, Japan, and China), ordered by year in ascending order.
+
+WITH country_medals AS (
+  SELECT 
+    year,
+    country,
+    count(*) AS medals
+  FROM summer_medals 
+  WHERE 
+    country IN ('CHN', 'KOR', 'JPN')
+    AND medal = 'Gold' 
+    AND year >= 2000
+  GROUP BY country, year
+)
+
+SELECT 
+  year,
+  country, 
+  medals,
+  MAX(medals) OVER(PARTITION BY country 
+    ORDER BY country, year) AS running_record
+FROM country_medals 
+ORDER BY country, year;
+
 -- Identify American gold medalists from 2000 on, the total number of medals won by each athlete, and the total medals (sorted by athlete's name in alphabetical order).
 
 WITH athlete_medals AS (
