@@ -1,5 +1,57 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
+-- Find aggregated average of each third of the highest medal-winning Olympians who have won more than one model
+
+WITH athlete_medals AS (
+  SELECT 
+    athlete, 
+    COUNT(*) AS medals
+  FROM summer_medals
+  GROUP BY athlete
+  HAVING COUNT(*) > 1
+),
+  
+thirds AS (
+  SELECT
+    athlete,
+    medals,
+    NTILE(3) OVER (ORDER BY medals DESC) AS Third
+  FROM athlete_medals
+)
+  
+SELECT
+  -- Get the average medals earned in each third
+  third,
+  avg(medals) AS Avg_Medals
+FROM thirds
+GROUP BY third
+ORDER BY third ASC;
+
+-- Label a distinct list of all events into three pages by alphabetical event
+
+-- Method #1 (my way, subquery in FROM)
+
+SELECT
+  event,
+  NTILE(3) OVER(ORDER BY event) AS page
+FROM (
+  SELECT DISTINCT event FROM summer_medals
+) AS events 
+ORDER BY event;
+
+-- Method #2 (datacamp, CTE)
+
+WITH Events AS (
+  SELECT DISTINCT Event
+  FROM Summer_Medals)
+  
+SELECT
+  event,
+  NTILE(3) OVER (ORDER BY event ASC) AS Page
+FROM Events
+ORDER BY Event ASC;
+
+
 -- Rank medalists in Japan and Korea by number of medals they wons ince 2000
 
 WITH athlete_medals AS (
@@ -18,7 +70,7 @@ SELECT
   country,
   athlete, 
   DENSE_RANK() OVER (PARTITION BY country
-                ORDER BY medals DESC) AS rank_n
+    ORDER BY medals DESC) AS rank_n
 FROM athlete_medals
 ORDER BY country ASC, rank_n ASC;
 
