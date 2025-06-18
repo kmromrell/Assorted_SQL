@@ -1,6 +1,50 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
 
+-- Return the year, medals earned, and the maximum gold medals earned for Chinese athletes since 2000, considering only the current row and previous two rows
+
+WITH chinese_medals AS(
+  SELECT 
+    athlete,
+    count(*) AS medals
+  FROM summer_medals 
+  WHERE 
+    country='CHN'
+    AND medal = 'Gold'
+    AND year >= 2000
+  GROUP BY athlete
+)
+
+SELECT 
+  athlete,
+  medals,
+  max(medals) OVER(ORDER BY athlete ASC ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS max_medals 
+FROM chinese_medals 
+ORDER BY athlete;
+
+-- Return the year, medals earned, and the maximum gold medals earned for Scandinavian countries, comparing only the current year and the next year.
+
+
+WITH scandinavian_medals AS (
+  SELECT 
+    year,
+    count(*) AS medals
+  FROM summer_medals
+  WHERE 
+    country IN ('DEN', 'NOR', 'FIN', 'SWE', 'ISL')
+    AND medal = 'Gold' 
+  GROUP BY year
+)
+
+SELECT 
+  year,
+  medals,
+  max(medals) OVER(ORDER BY year ASC
+  	ROWS BETWEEN CURRENT ROW
+    AND 1 FOLLOWING) AS max_medals
+FROM scandinavian_medals
+ORDER BY year;
+
 -- Identify France's running minimum gold medals since 2000. Return the year, medals earned, and minimum medals earned so far.
 
 WITH france_medals AS (
