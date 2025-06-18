@@ -1,6 +1,29 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
 
+-- Calculate the 3-year moving average of Gold medals earned by Russia since 1980.
+
+WITH russian_medals AS (
+  SELECT 
+    year,
+    count(*) AS medals 
+  FROM summer_medals 
+  WHERE 
+    country='RUS'
+    AND medal='Gold'
+    AND year>=1980
+  GROUP BY year 
+)
+
+SELECT 
+  year,
+  medals,
+  ROUND(AVG(medals) OVER(ORDER BY year
+    ROWS BETWEEN 2 PRECEDING
+    AND CURRENT ROW), 1) AS medals_ma
+FROM russian_medals 
+ORDER BY year;
+
 -- Return the year, medals earned, and the maximum gold medals earned for Chinese athletes since 2000, considering only the current row and previous two rows
 
 WITH chinese_medals AS(
