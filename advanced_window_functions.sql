@@ -1,6 +1,28 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
 
+-- Identify France's running minimum gold medals since 2000. Return the year, medals earned, and minimum medals earned so far.
+
+WITH france_medals AS (
+  SELECT 
+    year,
+    count(*) AS medals
+  FROM summer_medals 
+  WHERE 
+    country='FRA'
+    AND medal='Gold'
+    AND year>=2000
+  GROUP BY year
+)
+
+SELECT 
+  year,
+  medals,
+  MIN(medals) OVER (ORDER BY year) AS min_medals 
+FROM france_medals 
+ORDER BY year;
+
+
 -- Return the year, country, medals, and the maximum medals earned so far for each country (Korea, Japan, and China), ordered by year in ascending order.
 
 WITH country_medals AS (
@@ -45,7 +67,6 @@ SELECT
   SUM(medals) OVER(ORDER BY athlete ASC)  AS total_medals
 FROM athlete_medals 
 ORDER BY athlete ASC; 
-
 
 -- Find aggregated average of each third of the highest medal-winning Olympians who have won more than one model
 
