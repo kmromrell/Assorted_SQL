@@ -1,6 +1,34 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
 
+-- Generate a breakdown of the medals awarded to Russia per gender and medal type in 2012, including all group-level subtotals and a grand total.
+
+
+SELECT
+  gender,
+  medal,
+  count(*) AS medals
+FROM summer_medals
+WHERE
+  Year = 2012
+  AND country = 'RUS'
+GROUP BY CUBE(gender, medal)
+ORDER BY gender ASC, medal ASC;
+
+-- Identify the number of gold medals earned by three Scandinavian countries by gender in the year 2004. Retrieve totals grouped by country and gender as well as country totals.
+
+SELECT 
+  coalesce(country, 'All') AS country,
+  coalesce(gender, 'Total') AS gender,
+  count(*) AS gold_medals
+FROM summer_medals 
+WHERE 
+  year=2004
+  AND medal='Gold'
+  AND country IN ('DEN', 'NOR', 'SWE')
+GROUP BY country, ROLLUP(gender)
+ORDER BY country, gender;
+
 -- Produce a table of the rankings of the three most populous EU countries by how many gold medals they've earned in the 2004 through 2012 Olympic games. The table should be in a wide data format, with the years as columns.
 
 CREATE EXTENSION IF NOT EXISTS tablefunc;
