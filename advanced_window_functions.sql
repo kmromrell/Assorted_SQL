@@ -1,8 +1,59 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
 
--- Calculate the 3-year moving sum of medals earned per country ordered by country and year
+-- Produce a table of the rankings of the three most populous EU countries by how many gold medals they've earned in the 2004 through 2012 Olympic games. The table should be in a wide data format, with the years as columns.
 
+CREATE EXTENSION IF NOT EXISTS tablefunc;
+
+SELECT *
+FROM CROSSTAB($$
+  WITH country_medals AS ( 
+    SELECT
+      country,
+      year,
+      count(medal) AS medals
+    FROM summer_medals 
+    WHERE 
+      country IN ('FRA', 'GBR', 'GER')
+      AND medal='Gold'
+      AND year IN (2004, 2008, 2012)
+    GROUP BY country, year
+  )
+
+  SELECT 
+    country,
+    year,
+    RANK() OVER(PARTITION BY year ORDER BY medals DESC) AS ranked_medals
+  FROM country_medals
+  ORDER BY country, year
+$$) AS ct (country VARCHAR,
+          "2004" BIGINT,
+          "2008" BIGINT,
+          "2012" BIGINT)
+
+-- Create a table that show the gold medal-winning countries of 2008 and 2012 in the Pole Vault. Then pivtor that table to format the data in a wide table with years as columns.
+
+CREATE EXTENSION IF NOT EXISTS tablefunc;
+
+SELECT *
+FROM CROSSTAB($$
+  SELECT
+    gender,
+    year,
+    country
+  FROM summer_medals
+  WHERE 
+    event='Pole Vault'
+    AND medal='Gold'
+    AND year IN ('2008', '2012')
+  ORDER BY gender, year
+$$) AS ct (gender VARCHAR,
+          "2008" VARCHAR,
+          "2012" VARCHAR)
+ORDER BY gender;
+
+
+-- Calculate the 3-year moving sum of medals earned per country ordered by country and year
 
 WITH country_medals AS (
   SELECT 
