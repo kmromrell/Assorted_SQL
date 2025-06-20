@@ -1,12 +1,36 @@
 /* These queries are performed in PostgreSQL using a Summer Olympics dataset, which contains the results of the games between 1896 and 2012. The first Summer Olympics were held in 1896, the second in 1900, and so on. Queries are included in reverse order below.*/
 
+-- Ranking each country in the 2000 Olympics by gold medals awarded, then return the top 3 countries in one row, as a comma-separated string. 
+
+WITH country_medals AS (
+  SELECT
+    country,
+    COUNT(*) AS medals
+  FROM summer_medals
+  WHERE Year = 2000
+    AND medal = 'Gold'
+  GROUP BY country
+),
+
+country_ranks AS (
+  SELECT
+    country,
+    RANK() OVER (ORDER BY medals DESC) AS Rank
+  FROM country_medals
+  ORDER BY Rank ASC
+)
+
+SELECT STRING_AGG(country, ', ')
+FROM country_ranks
+WHERE rank<=3;
+
 
 -- Generate a breakdown of the medals awarded to Russia per gender and medal type in 2012, including all group-level subtotals and a grand total.
 
 
 SELECT
-  gender,
-  medal,
+  coalesce(gender, 'ALL GENDERS') AS gender,
+  coalesce(medal, 'ALL MEDAL TYPES') AS medals,
   count(*) AS medals
 FROM summer_medals
 WHERE
@@ -18,8 +42,8 @@ ORDER BY gender ASC, medal ASC;
 -- Identify the number of gold medals earned by three Scandinavian countries by gender in the year 2004. Retrieve totals grouped by country and gender as well as country totals.
 
 SELECT 
-  coalesce(country, 'All') AS country,
-  coalesce(gender, 'Total') AS gender,
+  country,
+  coalesce(gender, 'All Genders') AS gender,
   count(*) AS gold_medals
 FROM summer_medals 
 WHERE 
