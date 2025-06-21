@@ -1,5 +1,25 @@
 -- All data comes from the Sakila database, a fictitional DVD rental company database
 
+-- Put this all together. For each rental, identify the full name of the customer, the movie title, the rental date, the day of the week, the number of days rented, and whether or not the movie was overdue when it was turned in. All of this should apply to the same 90 day range from May 1 2005.
+
+SELECT 
+  CONCAT(c.first_name, ' ',c.last_name) AS full_name,
+  f.title,
+  r.rental_date,
+  EXTRACT(dow FROM r.rental_date) AS dayofweek,
+  AGE(r.return_date, r.rental_date) AS rental_days,
+  CASE 
+    WHEN DATE_TRUNC('day', AGE(return_date, rental_date))>f.rental_duration * INTERVAL '1 day' THEN 'True'
+    ELSE 'False'
+  END AS past_due
+FROM film AS f
+INNER JOIN inventory AS i 
+  ON f.film_id=i.film_id
+INNER JOIN rental AS r 
+  ON i.inventory_id=r.inventory_id
+INNER JOIN customer AS c 
+  ON r.customer_id=c.customer_id
+WHERE r.rental_date BETWEEN CAST('2005-05-01' AS date) AND CAST('2005-05-01' AS date) + INTERVAL '90 days';
 
 -- Identify the total number of rentals across each of the days of the week
 
