@@ -1,4 +1,27 @@
 -- All data comes from the Sakila database, a fictitional DVD rental company database
+-- Select all columns from the pg_type table where the type name is equal to mpaa_rating.
+
+SELECT *
+FROM pg_type 
+WHERE typname='mpaa_rating'
+
+-- Select the column name, data type and udt name columns and filter by the rating column in the film table
+SELECT column_name, data_type, udt_name
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE table_name ='film' AND column_name='rating';
+
+-- Create an enumerated data type, compass_position, and then confirm that it's in the pg_type system table
+CREATE TYPE compass_position AS ENUM (
+  	'North', 
+  	'South',
+  	'East', 
+  	'West'
+);
+
+SELECT typname, typcategory
+FROM pg_type
+WHERE typname='compass_position';
+
 -- Search for "elf" in the title, retrieving those titles and descriptions
 
 SELECT title, description
