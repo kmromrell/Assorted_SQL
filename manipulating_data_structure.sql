@@ -1,4 +1,16 @@
--- All data comes from the Sakila database, a fictitional DVD rental company database
+-- All data comes from the Sakila database, a fictitional DVD rental company database. Many of these functions are postgreSQL-specific.
+
+-- Use the user-created function "inventory_held_by_customer" to create a query to check which movies are currently checked out by a customer
+
+SELECT 
+	f.title, 
+    i.inventory_id,
+    inventory_held_by_customer(i.inventory_id) as held_by_cust
+FROM film as f 
+	INNER JOIN inventory AS i ON f.film_id=i.film_id 
+WHERE
+    inventory_held_by_customer(i.inventory_id) IS NOT NULL
+
 -- Select all columns from the pg_type table where the type name is equal to mpaa_rating.
 
 SELECT *
