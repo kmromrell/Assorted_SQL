@@ -1,6 +1,79 @@
+-- All data comes from the Sakila database, a fictitional DVD rental company database
 
 
+-- Identify the total number of rentals across each of the days of the week
 
+-- Method #1
+SELECT 
+  EXTRACT(dow FROM rental_date) AS dayofweek,
+  count(*) AS total_rentals
+FROM rental 
+GROUP BY 1;
+
+-- Method #2
+SELECT 
+  DATE_TRUNC('day', rental_date) AS rental_day,
+  COUNT(*) AS rentals 
+FROM rental
+GROUP BY 1;
+
+-- Now calculate a timestamp five days from measured to the second.
+
+SELECT
+	CURRENT_TIMESTAMP(0)::timestamp AS right_now,
+    interval '5 days' + CURRENT_TIMESTAMP(0) AS five_days_from_now;
+
+--Select the current timestamp without a timezone
+
+SELECT CAST( NOW() AS TIMESTAMP);
+
+SELECT CURRENT_TIMESTAMP::TIMESTAMP AS right_now;
+
+-- Calculate the expected return date of each rental
+
+SELECT
+    f.title,
+	r.rental_date,
+    f.rental_duration,
+    INTERVAL '1' day * f.rental_duration + rental_date AS expected_return_date,
+    r.return_date
+FROM film AS f
+    INNER JOIN inventory AS i ON f.film_id = i.film_id
+    INNER JOIN rental AS r ON i.inventory_id = r.inventory_id
+ORDER BY f.title;
+
+-- Exclude films that are currently checked out and also convert the rental_duration to an INTERVAL type.
+
+SELECT
+	f.title,
+    INTERVAL '1' day * rental_duration,
+    r.return_date - r.rental_date AS days_rented
+FROM film AS f
+    INNER JOIN inventory AS i ON f.film_id = i.film_id
+    INNER JOIN rental AS r ON i.inventory_id = r.inventory_id
+WHERE r.return_date IS NOT NULL
+ORDER BY f.title;
+
+--Determine the number of days of each rental experience using both AGE() and subtraction
+
+-- Method #1: AGE() function
+SELECT f.title, f.rental_duration,
+    -- Calculate the number of days rented
+	AGE(return_date, rental_date) AS days_rented
+FROM film AS f
+	INNER JOIN inventory AS i ON f.film_id = i.film_id
+	INNER JOIN rental AS r ON i.inventory_id = r.inventory_id
+ORDER BY f.title;
+
+-- Method #2: Basic subtraction
+SELECT 
+    f.title,
+    f.rental_duration,
+    r.return_date-r.rental_date AS days_rented
+FROM rental AS r 
+INNER JOIN inventory AS i USING(inventory_id)
+INNER JOIN film AS f USING(film_id)
+ORDERY BY f.title;
 
 -- Use the contains operator to match the text Deleted Scenes in the special_features column.
 
