@@ -1,5 +1,31 @@
 -- All data comes from the Sakila database, a fictitional DVD rental company database. Many of these functions are postgreSQL-specific.
 
+-- Use levenshtein comparison to find the closest match to "JET NEIGHBOR"
+SELECT  
+  title, 
+  description, 
+  levenshtein(title, 'JET NEIGHBOR') AS distance
+FROM 
+  film
+ORDER BY 3
+
+--Check similarity between title and description columns
+
+-- Method #1: similarity
+SELECT 
+  title, 
+  description, 
+  similarity(title, description)
+FROM 
+  film
+  
+-- Load the pg_trgm extension and then verify that it's loaded
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+SELECT * 
+FROM pg_extension;
+
 -- Use the user-created function "inventory_held_by_customer" to create a query to check which movies are currently checked out by a customer
 
 SELECT 
@@ -40,12 +66,10 @@ SELECT title, description
 FROM film
 WHERE to_tsvector(title) @@ to_tsquery('elf');
 
-
 -- Select the film description as a tsvector
 
 SELECT to_tsvector(description)
 FROM film;
-
 
 -- Concatenate the film and category. Generate a shortened description that doesn't go beyond 50 characters but also doesn't cut off any words.
 
