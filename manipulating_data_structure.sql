@@ -1,4 +1,16 @@
 -- All data comes from the Sakila database, a fictitional DVD rental company database
+-- Search for "elf" in the title, retrieving those titles and descriptions
+
+SELECT title, description
+FROM film
+WHERE to_tsvector(title) @@ to_tsquery('elf');
+
+
+-- Select the film description as a tsvector
+
+SELECT to_tsvector(description)
+FROM film;
+
 
 -- Concatenate the film and category. Generate a shortened description that doesn't go beyond 50 characters but also doesn't cut off any words.
 
