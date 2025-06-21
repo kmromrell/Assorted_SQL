@@ -1,5 +1,23 @@
 -- All data comes from the Sakila database, a fictitional DVD rental company database. Many of these functions are postgreSQL-specific.
 
+
+
+
+-- Generate a data set that we could use to predict whether the words and phrases used to describe a film have an impact on the number of rentals.
+
+SELECT 
+  title, 
+  description, 
+  -- Calculate the similarity
+  similarity(description, 'Astounding & Drama')
+FROM 
+  film 
+WHERE 
+  to_tsvector(description) @@ 
+  to_tsquery('Astounding & Drama') 
+ORDER BY 
+	similarity(description, 'Astounding & Drama') DESC;
+
 -- Use levenshtein comparison to find the closest match to "JET NEIGHBOR"
 SELECT  
   title, 
