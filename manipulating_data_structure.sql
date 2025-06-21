@@ -1,5 +1,108 @@
 -- All data comes from the Sakila database, a fictitional DVD rental company database
 
+-- Concatenate the film and category. Generate a shortened description that doesn't go beyond 50 characters but also doesn't cut off any words.
+
+SELECT 
+  CONCAT(name, ' ', title) AS film_category,
+  LEFT(description, 50 - 
+    POSITION(
+      ' ' IN REVERSE(
+        LEFT(description, 50)
+      )
+    )
+  )
+FROM 
+  film AS f 
+INNER JOIN film_category AS fc 
+ 	ON f.film_id = fc.film_id 
+ INNER JOIN category AS c 
+ 	ON fc.category_id = c.category_id;
+
+-- Convert the film category name to uppercase and combine it with the title. Truncate the description 50 characters, getting rid of any leading/trailing white spaces.
+
+SELECT 
+  CONCAT(UPPER(c.name), ': ', f.title) AS film_category,
+  TRIM(LEFT(f.description, 50)) AS film_desc
+FROM 
+  film AS f 
+  INNER JOIN film_category AS fc 
+  	ON f.film_id = fc.film_id 
+  INNER JOIN category AS c 
+  	ON fc.category_id = c.category_id;
+
+-- Generate a combine first/last name using padded text 
+
+-- Method #1
+SELECT 
+	RPAD(first_name, LENGTH(first_name)+1) || last_name AS full_name
+FROM customer;
+
+-- Method #2
+SELECT 
+	first_name || LPAD(last_name, LENGTH(last_name)+1) AS full_name
+FROM customer; 
+
+-- Split the email addresses into the username and the domain name
+
+SELECT 
+  SUBSTR(email, 1, POSITION('@' IN email)-1) AS username,
+  SUBSTR(email, POSITION('@' IN email)+1, LENGTH(email)) AS domain
+FROM customer;
+
+-- Identify only the street name (not including the house address) from address column
+
+SELECT 
+  -- Select only the street name from the address table
+  SUBSTRING(address, POSITION(' ' IN address)+1, LENGTH(address))
+FROM 
+  address;
+
+-- Shorter the movie descriptions to just the first 50 characters
+
+SELECT 
+  LEFT(description, 50) AS short_desc
+FROM 
+  film AS f
+  
+-- Identify the number of characters in each film description
+
+SELECT 
+  title,
+  description,
+  LENGTH(description) AS desc_len
+FROM film;
+
+-- Replace whitespace in the film title with an underscore
+
+SELECT 
+  REPLACE(title, ' ', '_') AS title
+FROM film; 
+
+-- Adjust the case of the genre, title, and description, combining the genre and title into one concatenated cell.
+
+-- Method #1: PostgreSQL only
+SELECT 
+  UPPER(c.name)  || ': ' || INITCAP(f.title) AS film_category, 
+  LOWER(f.description) AS description
+FROM 
+  film AS f 
+  INNER JOIN film_category AS fc 
+  	ON f.film_id = fc.film_id 
+  INNER JOIN category AS c 
+  	ON fc.category_id = c.category_id;
+  	
+ -- Method #2: General SQL
+ SELECT 
+  CONCAT(UPPER(c.name), ': ', INITCAP(f.title)) AS film_category, 
+  LOWER(f.description) AS description
+FROM 
+  film AS f 
+  INNER JOIN film_category AS fc 
+  	ON f.film_id = fc.film_id 
+  INNER JOIN category AS c 
+  	ON fc.category_id = c.category_id;
+
+
 -- Put this all together. For each rental, identify the full name of the customer, the movie title, the rental date, the day of the week, the number of days rented, and whether or not the movie was overdue when it was turned in. All of this should apply to the same 90 day range from May 1 2005.
 
 SELECT 
