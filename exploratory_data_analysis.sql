@@ -1,4 +1,4 @@
--- Exploratory Data Analysis
+-- All data is coming from a fortune500 database with information from 2017.
 
 -- For example, how does the maximum value per group vary across groups? To find out, first summarize by group, and then compute summary statistics of the group results.
 
@@ -27,7 +27,6 @@ FROM fortune500
 GROUP BY sector
 ORDER BY avg DESC;
 
--- -- First, using the tag_type table, count the number of tags with each type. Order the results to find the most common tag type. Then enerate a list of companies using the most common tag type, joining together the necessary tables
 -- Determine if unanswered_pct is the percent of questions with the tag that are unanswered (unanswered ?s with tag/all ?s with tag) or if it's something else.
 
 -- Method #1: Universal
