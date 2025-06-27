@@ -1,6 +1,44 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character columns.*/
 
 
+-- Select the time five minutes from now
+SELECT now()+ '5 minutes'::interval;
+
+-- Add 100 days to the current timestamp
+SELECT now() + interval '100 days';
+
+-- Add 100 days to the current timestamp
+SELECT now() + '100 days'::interval;
+
+-- How old is the most recent request?
+SELECT 
+  now()-max(date_created)
+FROM evanston311;
+
+-- Subtract the min date_created from the max
+SELECT 
+  max(date_created)-min(date_created)
+FROM evanston311;
+
+-- Count requests created on January 31, 2017
+SELECT count(*) 
+FROM evanston311
+WHERE date_created::date='2017-01-31';
+
+-- Count requests created on February 29, 2016
+SELECT count(*)
+FROM evanston311 
+WHERE 
+	date_created::date >= '2016-02-29' 
+	AND date_created::date < '2016-03-01';
+   
+-- Count requests created on March 13, 2017
+SELECT count(*)
+FROM evanston311
+WHERE 
+	date_created >= '2017-03-13'
+	AND date_created < '2017-03-13'::date + interval '1 day';
+
 -- Determine whether medium and high priority requests in the evanston311 data are more likely to contain requesters' contact information: an email address or phone number.
 
 -- Method #1: My initial attempt using CASE to create and immediately use boolean variables
