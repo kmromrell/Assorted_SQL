@@ -56,6 +56,26 @@ SELECT lower, upper, count(question_count)
         AND question_count<upper
  GROUP BY lower, upper
  ORDER BY lower;
+
+
+-- Use trunc() to examine the distributions of employees in the Fortune 500 companies. What range do most companies fall into?
+
+SELECT 
+  trunc(employees, -5) AS employee_bin_100k,
+  count(trunc(employees, -5)) AS count
+FROM fortune500
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+  trunc(employees, -4) AS employee_bin_10k,
+  count(trunc(employees, -4)) AS count
+FROM fortune500
+WHERE employees<100000
+GROUP BY 1
+ORDER BY 1; 
+
+
 -- For example, how does the maximum value per group vary across groups? To find out, first summarize by group, and then compute summary statistics of the group results.
 
 SELECT
