@@ -1,6 +1,24 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character columns.*/
 
 
+-- Organize data by zipcode. If a zipcode comes up less than 100 times, organize it into an "Other" category
+
+SELECT 
+	CASE 
+		WHEN zipcount < 100 THEN 'other'
+    	ELSE zip
+    END AS zip_recoded,
+	sum(zipcount) AS zipsum
+FROM (
+	SELECT 
+		zip, 
+		count(*) AS zipcount
+	FROM evanston311
+	GROUP BY zip
+) AS fullcounts
+ GROUP BY zip_recoded
+ ORDER BY zipsum DESC;
+
 -- Select the first 50 characters of description when description starts with the word "I".
 
 
