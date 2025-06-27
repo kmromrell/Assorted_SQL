@@ -1,5 +1,61 @@
 -- All data is coming from a fortune500 database with information from 2017.
 
+-- Summarize the distribution of the number of questions with the tag "dropbox" on Stack Overflow per day by binning the data. 
+
+-- Method #1: My way of going about it
+
+-- Exploring the data to get actionable ranges
+SELECT 
+     count(*),
+     min(question_count),
+     max(question_count),
+     avg(question_count)
+FROM stackoverflow
+WHERE tag='dropbox'
+
+-- Creating bins
+WITH bins AS(
+     SELECT 
+     	-- intentionally including an empty bin above and below to show that this is the full range
+		generate_series(2200, 3100, 100) AS lower,
+		generate_series(2300, 3200, 100) AS upper
+),
+
+filtered_questions AS(
+	SELECT question_count 
+	FROM stackoverflow 
+	WHERE tag='dropbox'
+)
+
+-- Organizing the data by bins
+SELECT
+     lower,
+     upper,
+     count(question_count)
+FROM filtered_questions
+LEFT JOIN bins
+     ON question_count>=lower 
+     AND question_count<upper
+GROUP BY lower, upper
+ORDER BY lower;
+
+
+-- Method #2: DataCamp's desired outcome
+
+WITH bins AS (
+      SELECT generate_series(2200, 3050, 50) AS lower,
+             generate_series(2250, 3100, 50) AS upper),
+     dropbox AS (
+      SELECT question_count 
+        FROM stackoverflow
+       WHERE tag='dropbox') 
+SELECT lower, upper, count(question_count) 
+  FROM bins
+       LEFT JOIN dropbox
+         ON question_count>=lower 
+        AND question_count<upper
+ GROUP BY lower, upper
+ ORDER BY lower;
 -- For example, how does the maximum value per group vary across groups? To find out, first summarize by group, and then compute summary statistics of the group results.
 
 SELECT
