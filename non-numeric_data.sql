@@ -1,5 +1,40 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character and datetime columns.*/
 
+-- Find the median number of Evanston 311 requests per day in each six month period from 2016-01-01 to 2018-06-30.
+
+-- Creating bins of 6 month intervals
+WITH time_span AS(
+	SELECT
+		generate_series('2016-01-01', '2018-01-01', '6 months'::interval)::date AS lower,
+		generate_series('2016-07-01', '2018-07-01', '6 months'::interval)::date AS upper
+),
+
+-- Finding the total number of requests each day, including days with no requests
+requests_per_day AS(
+	SELECT
+		d.day,
+		count(e.id) AS count
+	FROM (
+		-- Subquery to make sure days with 0 requests are included
+		SELECT generate_series('2016-01-01', '2018-06-30', '1 day'::interval)::date AS day
+	) AS d
+	LEFT JOIN evanston311 AS e
+		ON d.day=e.date_created::date
+	GROUP BY day
+)
+
+-- Finding the median number of requests across those bins
+SELECT
+	lower,
+    upper,
+    percentile_disc(.5) WITHIN GROUP(ORDER BY r.count) AS median
+FROM time_span AS t
+LEFT JOIN requests_per_day AS r
+	ON r.day>=lower
+	AND r.day<upper
+GROUP BY lower, upper
+ORDER BY lower;
+
 -- Are there any days in the Evanston 311 data where no requests were created?
 
 -- Method #1: My method, using CTE to create a series then joining it with the dataset and grouping/filtering to show only the days without requests
