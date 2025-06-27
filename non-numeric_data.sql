@@ -1,5 +1,39 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character and datetime columns.*/
 
+-- Are there any days in the Evanston 311 data where no requests were created?
+
+-- Method #1: My method, using CTE to create a series then joining it with the dataset and grouping/filtering to show only the days without requests
+
+WITH date_range AS(
+	SELECT
+		generate_series(min(date_created), max(date_created), '1 day')::date AS day
+	FROM evanston311
+)
+
+SELECT 
+	day AS no_requests
+FROM date_range AS dr 
+LEFT JOIN evanston311 AS e 
+	
+	ON dr.day=e.date_created::date
+GROUP BY day
+HAVING count(id)=0;
+
+-- Method #2: DataCamp desired outcome, using two subqueries to align data
+
+SELECT 
+	day
+FROM (
+	-- Subquery to generate series of all dates from min to max date
+	SELECT
+		generate_series(min(date_created), max(date_created), '1 day')::date AS day
+		FROM evanston311
+) AS all_dates
+WHERE day NOT IN (
+	-- Subquery to generate list of all dates in evanston in order to compare against previous list
+	SELECT date_created::date FROM evanston311
+)
+
 -- Find the average number of Evanston 311 requests created per day for each month of the data. Ignore days with no requests when taking the average.
 
 SELECT 
