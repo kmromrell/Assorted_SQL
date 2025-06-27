@@ -1,5 +1,52 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character columns.*/
 
+-- Does the time required to complete a request vary by the day of the week on which the request was created?
+
+SELECT 
+     to_char(date_created, 'day') AS day,
+     avg(date_completed-date_created) AS duration 
+FROM evanston311
+GROUP BY day, EXTRACT(DOW FROM date_created)
+ORDER BY EXTRACT(DOW FROM date_created);
+
+-- Identify the busiest times for the Evanston 311 requests.
+
+-- Count requests completed by hour
+SELECT EXTRACT(HOUR FROM date_completed) AS hour,
+       count(*)
+  FROM evanston311
+ GROUP BY hour
+ ORDER BY hour;
+
+-- How many requests are created in each of the 24 months during 2016-2017?
+SELECT 
+  EXTRACT(MONTH FROM date_created) AS month, 
+  count(*)
+FROM evanston311
+WHERE 
+  date_created>='2016-01-01'
+  AND date_created<'2018-01-01'
+GROUP BY month;
+
+-- What is the most common hour of the day for requests to be created?
+SELECT 
+	EXTRACT(HOUR FROM date_created) AS hour,
+	count(*)
+FROM evanston311
+GROUP BY hour
+ORDER BY count(*) DESC
+LIMIT 1;
+
+-- Which category of Evanston 311 requests takes the longest to complete?
+
+SELECT 
+	category, 
+	avg(date_completed-date_created) AS completion_time
+FROM evanston311
+GROUP BY category
+ORDER BY completion_time DESC;
+
+-- Complete the following requests for specific dates/intervals of requests
 
 -- Select the time five minutes from now
 SELECT now()+ '5 minutes'::interval;
