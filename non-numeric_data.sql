@@ -1,6 +1,84 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character columns.*/
 
 
+-- Determine whether medium and high priority requests in the evanston311 data are more likely to contain requesters' contact information: an email address or phone number.
+
+-- Method #1: My initial attempt using CASE to create and immediately use boolean variables
+
+ SELECT 
+	priority,
+	sum(CASE 
+		WHEN description LIKE '%@%' THEN 1
+		ELSE 0
+		END)/count(*)::numeric AS phone_ratio,
+	sum(CASE 
+		WHEN description LIKE '%___-___-____%' THEN 1
+		ELSE 0
+    END)/count(*)::numeric AS email_ratio
+FROM evanston311
+GROUP BY priority
+ORDER BY phone_ratio DESC
+
+-- Method #2: Datacamp's intent using temporary tables and CAST
+
+-- To clear table if it already exists
+DROP TABLE IF EXISTS indicators;
+
+-- Create the temp table
+CREATE TEMP TABLE indicators AS
+	SELECT id, 
+		CAST (description LIKE '%@%' AS integer) AS email,
+		CAST (description LIKE '%___-___-____%' AS integer) AS phone 
+	FROM evanston311;
+
+-- Compute ratio and aggregate the data
+SELECT priority,
+	sum(email)/count(*)::numeric AS email_prop, 
+	sum(phone)/count(*)::numeric AS phone_prop
+FROM evanston311
+LEFT JOIN indicators
+	ON evanston311.id=indicators.id
+GROUP BY priority;
+
+-- There are almost 150 distinct values of evanston311.category. But some of these categories are similar, with the form "Main Category - Details". We can get a better sense of what requests are common if we aggregate by the main category.
+
+-- Drop table if already exists
+DROP TABLE IF EXISTS recode;
+
+-- Create table with first standardizations
+CREATE TEMP TABLE recode AS
+	SELECT DISTINCT 
+		category, 
+		rtrim(split_part(category, '-', 1)) AS standardized
+	FROM evanston311;
+
+-- Update table with additioanl standardizations
+UPDATE recode 
+SET standardized='Trash Cart' 
+WHERE standardized LIKE 'Trash%Cart';
+
+UPDATE recode 
+SET standardized='Snow Removal' 
+WHERE standardized LIKE 'Snow%Removal%';
+
+UPDATE recode 
+SET standardized='UNUSED' 
+WHERE standardized IN (
+	'THIS REQUEST IS INACTIVE...Trash Cart', 
+	'(DO NOT USE) Water Bill',
+	'DO NOT USE Trash', 
+	'NO LONGER IN USE'
+);
+
+-- Join tables to use new standardized categories
+SELECT 
+	standardized,
+	count(*)
+FROM evanston311 
+LEFT JOIN recode USING(category)
+GROUP BY standardized 
+ORDER BY count DESC;
+
 -- Organize data by zipcode. If a zipcode comes up less than 100 times, organize it into an "Other" category
 
 SELECT 
