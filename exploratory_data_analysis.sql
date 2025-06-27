@@ -1,5 +1,91 @@
 -- All data is coming from a fortune500 database with information from 2017.
 
+
+-- Compute the correlations between each pair of profits, profits_change, and revenues_change from the Fortune 500 data, creating a correlation matrix. For some reason, don't do this in R, where this would be super easy, but instead make an overly complicated query in SQL to try to mimic the results.
+
+DROP TABLE IF EXISTS correlations;
+
+CREATE TEMP TABLE correlations AS
+SELECT 'profits'::varchar AS measure,
+       corr(profits, profits) AS profits,
+       corr(profits, profits_change) AS profits_change,
+       corr(profits, revenues_change) AS revenues_change
+  FROM fortune500;
+
+INSERT INTO correlations
+SELECT 'profits_change'::varchar AS measure,
+       corr(profits_change, profits) AS profits,
+       corr(profits_change, profits_change) AS profits_change,
+       corr(profits_change, revenues_change) AS revenues_change
+  FROM fortune500;
+
+INSERT INTO correlations
+SELECT 'revenues_change'::varchar AS measure,
+       corr(revenues_change, profits) AS profits,
+       corr(revenues_change, profits_change) AS profits_change,
+       corr(revenues_change, revenues_change) AS revenues_change
+  FROM fortune500;
+
+SELECT measure, 
+       round(profits::numeric, 2) AS profits,
+       round(profits_change::numeric, 2) AS profits_change,
+       round(revenues_change::numeric, 2) AS revenues_change
+  FROM correlations;
+
+-- Find out how many questions had each tag on the first date for which data for the tag is available, as well as how many questions had the tag on the last day. 
+
+-- Method #1: My initial work; use CTE to give mindate/maxdate to filter by; pivot data using CROSSTAB
+CREATE EXTENSION IF NOT EXISTS tablefunc;
+
+SELECT *
+FROM CROSSTAB($$ 
+  WITH dates AS(
+    SELECT
+      tag,
+      min(date) AS mindate,
+      max(date) AS maxdate
+    FROM stackoverflow
+    GROUP BY tag
+  )
+
+  SELECT
+    tag,
+    date,
+    question_count
+  FROM stackoverflow
+  LEFT JOIN dates USING(tag)
+  WHERE 
+    date=mindate
+    OR date=maxdate
+  ORDER BY tag, date 
+$$) AS pivoted_date 
+        (tag VARCHAR, 
+        "mindate" integer, 
+        "maxdate" integer);
+        
+-- Method #2: What DataCamp was going for
+
+DROP TABLE IF EXISTS startdates;
+
+CREATE TEMP TABLE startdates AS
+SELECT tag, min(date) AS mindate
+  FROM stackoverflow
+ GROUP BY tag;
+ 
+SELECT startdates.tag, 
+       startdates.mindate, 
+	   so_min.question_count AS min_date_question_count,
+       so_max.question_count AS max_date_question_count,
+       so_max.question_count - so_min.question_count AS change
+  FROM startdates
+       INNER JOIN stackoverflow AS so_min
+          ON startdates.tag = so_min.tag
+         AND startdates.mindate = so_min.date
+       INNER JOIN stackoverflow AS so_max
+          ON startdates.tag = so_max.tag
+         AND so_max.date = '2018-09-25';
+
+
 -- Use a temporary table to find the Fortune 500 companies that have profits in the top 20% for their sector (compared to other Fortune 500 companies). Include a ratio of the company's profits to the 80th percentile.
 
 CREATE TEMPORARY TABLE profit80 AS
