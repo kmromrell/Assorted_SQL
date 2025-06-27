@@ -1,5 +1,52 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character and datetime columns.*/
 
+
+-- Find the average number of Evanston 311 requests created per day for each month of the data. This time, do not ignore dates with no requests.
+
+-- Method #1: My method, using one CTE with join to handle NULL values
+WITH all_days AS(
+	SELECT 
+		a.day,
+		count(e.id) AS count
+	FROM (
+     	-- Subquery to ensure that days with 0 requests also appear
+		SELECT generate_series('2016-01-01', '2018-06-30', '1 day'::interval)::date AS day
+	) AS a
+	LEFT JOIN evanston311 AS e
+		ON a.day=e.date_created::date
+	GROUP BY day
+)
+
+SELECT 
+	date_trunc('month', day)::date AS month,
+	round(avg(count), 2) AS avg
+FROM all_days
+GROUP BY month 
+ORDER BY month;
+
+-- Method #2: DataCamp method; using two CTEs and COALESCE to handle NULL values
+
+WITH all_days AS(
+	SELECT 
+		generate_series('2016-01-01', '2018-06-30', '1 day'::interval) AS date
+),
+
+daily_count AS (
+	SELECT 
+		date_trunc('day', date_created) AS day, 
+		count(*) AS count
+	FROM evanston311
+	GROUP BY day
+)
+
+SELECT date_trunc('month', date) AS month,
+       avg(coalesce(count, 0)) AS average
+  FROM all_days
+       LEFT JOIN daily_count
+       ON all_days.date=daily_count.day
+ GROUP BY month
+ ORDER BY month;
+
 -- Find the median number of Evanston 311 requests per day in each six month period from 2016-01-01 to 2018-06-30.
 
 -- Creating bins of 6 month intervals
