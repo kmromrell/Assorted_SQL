@@ -1,4 +1,19 @@
-/*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character columns.*/
+/*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character and datetime columns.*/
+
+-- Find the average number of Evanston 311 requests created per day for each month of the data. Ignore days with no requests when taking the average.
+
+SELECT 
+  date_trunc('month', day) AS month,
+  avg(count)
+FROM (
+  SELECT 
+    date_trunc('day', date_created) AS day,
+    count(*)
+  FROM evanston311
+  GROUP BY day
+) AS day_count
+GROUP BY month
+ORDER BY month
 
 -- Does the time required to complete a request vary by the day of the week on which the request was created?
 
