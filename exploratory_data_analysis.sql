@@ -1,5 +1,42 @@
 -- All data is coming from a fortune500 database with information from 2017.
 
+-- Use a temporary table to find the Fortune 500 companies that have profits in the top 20% for their sector (compared to other Fortune 500 companies). Include a ratio of the company's profits to the 80th percentile.
+
+CREATE TEMPORARY TABLE profit80 AS
+  SELECT 
+    sector,
+    percentile_disc(.8) WITHIN GROUP (ORDER BY profits) AS profit_at_80
+  FROM fortune500
+  GROUP BY sector;
+
+SELECT 
+  f.title,
+  f.sector,
+  f.profits,
+  profits/profit_at_80 AS ratio
+FROM fortune500 AS f 
+LEFT JOIN profit80 AS p80 
+  USING(sector)
+WHERE f.profits>=p80.profit_at_80
+ORDER BY ratio DESC;
+
+-- Compute the mean and median assets of Fortune 500 companies by sector.
+
+SELECT 
+	sector,
+	avg(assets) AS mean,
+	percentile_cont(.5) WITHIN GROUP (ORDER BY assets) AS median
+FROM fortune500
+GROUP BY sector
+ORDER BY mean;
+
+-- Find the two-way correlations between revenues, profits, and assets
+
+SELECT corr(revenues, profits) AS rev_profits,
+       corr(revenues, assets) AS rev_assets,
+       corr(revenues, equity) AS rev_equity 
+  FROM fortune500;
+
 -- Summarize the distribution of the number of questions with the tag "dropbox" on Stack Overflow per day by binning the data. 
 
 -- Method #1: My way of going about it
