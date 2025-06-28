@@ -1,3 +1,53 @@
+-- Prepare a  report with KPIs for each country separately. Your manager is interested in the total number of movie rentals, the average rating of all movies and the total revenue for each country since the beginning of 2019.
+
+SELECT 
+	country, 
+	count(*) AS number_renting,
+	roun(avg(rating), 1) AS average_rating,
+	sum(renting_price) AS revenue 
+FROM renting AS r
+LEFT JOIN customers AS c
+ON c.customer_id = r.customer_id
+LEFT JOIN movies AS m
+ON m.movie_id = r.movie_id
+WHERE date_renting >= '2019-01-01'
+GROUP BY country
+ORDER BY average_rating;
+
+-- WHich actors are the Spanish customers watching most often?
+
+SELECT 
+    a.name,
+    count(*)
+FROM renting AS r 
+JOIN customers AS c 
+    USING (customer_id)
+JOIN actsin AS ai
+    USING (movie_id)
+JOIN actors AS a 
+    USING(actor_id)
+WHERE c.country='Spain'
+GROUP BY a.name 
+ORDER BY count(*) DESC;
+
+-- Which is the favorite movie on MovieNow? Answer this question for a specific group of customers: for all customers born in the 70s.
+
+SELECT 
+    m.title,
+    round(avg(rating), 2) AS avg_rating,
+    count(rating) AS count_ratings,
+    count(*) AS count_rentals
+FROM renting AS r 
+LEFT JOIN movies AS m 
+    USING(movie_id)
+LEFT JOIN customers AS c 
+    USING (customer_id)
+WHERE EXTRACT(YEAR FROM c.date_of_birth) BETWEEN 1970 AND 1979
+GROUP BY m.title
+HAVING avg(rating) IS NOT NULL
+ORDER BY avg_rating DESC
+
+
 -- Find the oldest and youngest actors and actresses in the database, assuming they're all still alive.
 
 SELECT 
