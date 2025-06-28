@@ -1,3 +1,23 @@
+-- Find the oldest and youngest actors and actresses in the database, assuming they're all still alive.
+
+SELECT 
+	gender, 
+	min(year_of_birth), 
+	max(year_of_birth)
+FROM actors
+WHERE nationality='USA'
+GROUP BY gender
+
+
+-- What is the approximate age of each actor in the database, assuming they're all still alive?
+
+SELECT
+   name,
+   EXTRACT(YEAR FROM now())-year_of_birth AS age 
+FROM actors 
+WHERE nationality='USA'
+ORDER BY age DESC
+
 -- How much income did each movie generate? 
 
 SELECT 
