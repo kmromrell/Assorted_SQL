@@ -1,6 +1,151 @@
 /*In this chapter, we'll be working mostly with the Evanston 311 data in table evanston311. This is data on help requests submitted to the city of Evanston, IL. This data has several character and datetime columns.*/
 
 
+-- Requests in category "Rodents- Rats" average over 64 days to resolve. Why? Investigate using a variety of methods and report back.
+
+-- Explore the data
+SELECT *
+FROM evanston311 
+WHERE category='Rodents- Rats';
+
+-- Is there one huge infestation that's throwing off the average? Not really, though there are waves.
+SELECT 
+  date_trunc('month', date_created)::date AS month,
+  count(*)
+FROM evanston311 
+WHERE category='Rodents- Rats'
+GROUP BY month, category
+ORDER BY month
+
+-- Are there a small portion of extremely delayed completions that are throwing things off? Yes (average sans top 5% is 11 days rather than 64. 
+SELECT  
+  category,
+  avg(date_completed-date_created) AS avg_completion_time
+FROM evanston311
+WHERE date_completed-date_created < (
+  SELECT
+    percentile_disc(.95) WITHIN GROUP (ORDER BY (date_completed-date_created))
+  FROM evanston311
+)    
+GROUP BY category
+ORDER BY avg_completion_time DESC;
+
+-- Do requests made in busy months take longer to complete? Not particularly -- small but positive correlation.
+
+-- Method #1: My instincts
+WITH monthly_avgs AS(
+  SELECT
+    date_trunc('month', date_created) AS month,
+    count(*) AS requests_per_month,
+    EXTRACT(EPOCH FROM (avg(date_completed-date_created))) AS avg_completion_time
+  FROM evanston311
+  WHERE category='Rodents- Rats'
+  GROUP BY month
+)
+
+SELECT 
+    corr(avg_completion_time, requests_per_month) AS busy_rates
+FROM monthly_avgs
+
+-- Method #2: DataCamp method
+
+SELECT 
+	corr(avg_completion, count)
+FROM (
+	-- Subquery to create the needed variables
+ 	SELECT date_trunc('month', date_created) AS month, 
+		avg(EXTRACT(epoch FROM date_completed - date_created)) AS avg_completion, 
+		count(*) AS count
+	FROM evanston311
+	WHERE category='Rodents- Rats' 
+	GROUP BY month
+) AS monthly_avgs;
+
+
+-- Are the number of requests completed constant or ever-fluctuating? More the second -- a couple of dry months and some higher months.
+
+WITH creations AS(
+     SELECT 
+          date_trunc('month', date_created) AS month,
+          count(*) AS num_created
+     FROM evanston311
+     WHERE category='Rodents- Rats'
+     GROUP BY month 
+),
+
+completions AS(
+     SELECT 
+          date_trunc('month', date_completed) AS month,
+          count(*) AS num_completed
+     FROM evanston311
+     WHERE category='Rodents- Rats'
+     GROUP BY month 
+)
+
+SELECT 
+     month::date,
+     num_created,
+     num_completed
+FROM creations
+LEFT JOIN completions
+     USING(month)
+ORDER BY month
+
+-- Is it because we often do them in bulk? Yes, that's likely a factor.
+
+SELECT 
+  avg(count) AS avg,
+  min(count) AS min,
+  max(count) AS max
+FROM (
+  SELECT 
+    date_trunc('day', date_completed) AS completion_date,
+    count(*) AS count
+  FROM evanston311
+  WHERE category='Rodents- Rats'
+  GROUP BY completion_date
+) AS requests_per_completion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- What is the longest time between Evanston 311 requests being submitted?
+
+-- Method #1: My method; technically requires you to bypass a null, but quick and easy
+SELECT 
+	date_created,
+	date_created-lag(date_created) OVER (ORDER BY date_created) AS gap
+FROM evanston311
+ORDER BY gap DESC
+
+-- Method #2: DataCamp's method; 
+
+WITH request_gaps AS (
+	SELECT date_created,
+		LAG(date_created) OVER (ORDER BY date_created) AS previous,
+		date_created - LAG(date_created) OVER (ORDER BY date_created) AS gap
+	FROM evanston311
+)
+
+SELECT *
+FROM request_gaps
+-- Subquery to select maximum gap from request_gaps
+ WHERE gap = (SELECT max(gap)
+                FROM request_gaps);
+
 -- Find the average number of Evanston 311 requests created per day for each month of the data. This time, do not ignore dates with no requests.
 
 -- Method #1: My method, using one CTE with join to handle NULL values
