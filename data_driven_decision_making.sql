@@ -1,3 +1,65 @@
+-- Data-driven decision making. 
+
+/*Data for the following queries comes from a fictious online movie rental company, MovieNow, in which customers can rent a movie for 24 hours. It contains tables with information about the movies, customers, rentals, and actors. All queries are listed in reverse order below to show more advanced queries at the top.*/
+
+
+
+
+-- The advertising team has a new focus. They want to draw the attention of the customers to dramas. Make a list of all movies that are in the drama genre and have an average rating higher than 9. Give the full movie information.
+
+-- Method #1: My instinctual method
+
+SELECT *
+FROM movies
+WHERE 
+	genre='Drama'
+	AND movie_id IN (
+	SELECT
+		movie_id
+	FROM renting
+	GROUP BY movie_id
+	HAVING avg(rating)>9
+)
+
+-- Method #2: DataCamp's intended method
+
+SELECT *
+FROM movies
+WHERE movie_id IN -- Select all movies of genre drama with average rating higher than 9
+   (SELECT movie_id
+    FROM movies
+    WHERE genre = 'Drama'
+    INTERSECT
+    SELECT movie_id
+    FROM renting
+    GROUP BY movie_id
+    HAVING AVG(rating)>9);
+
+-- Identify actors who are not from the USA or who were born after 1990.
+
+-- Method #1: My instinctual method
+SELECT 
+       name,
+       nationality,
+       year_of_birth
+FROM actors 
+WHERE 
+       nationality!='USA'
+       OR year_of_birth>1990
+     
+-- Method #2: DataCamp's intended method
+SELECT name, 
+       nationality, 
+       year_of_birth
+FROM actors
+WHERE nationality <> 'USA'
+UNION
+SELECT name, 
+       nationality, 
+       year_of_birth
+FROM actors
+WHERE year_of_birth > 1990;
+
 -- In order to analyze the diversity of actors in comedies, first, report a list of actors who play in comedies and then, the number of actors for each nationality playing in comedies.
 
 -- My method
