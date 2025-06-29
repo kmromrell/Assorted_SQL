@@ -2,8 +2,54 @@
 
 /*Data for the following queries comes from a fictious online movie rental company, MovieNow, in which customers can rent a movie for 24 hours. It contains tables with information about the movies, customers, rentals, and actors. All queries are listed in reverse order below to show more advanced queries at the top.*/
 
+-- You are asked to study the preferences of genres across countries. Are there particular genres which are more popular in specific countries? Evaluate the preferences of customers by averaging their ratings and counting the number of movies rented from each genre.
+
+SELECT 
+    country,
+    genre,
+    avg(rating),
+    count(*)
+FROM renting 
+JOIN movies
+    USING(movie_id)
+JOIN customers
+    USING(customer_id)
+GROUP BY ROLLUP (country, genre)
+ORDER BY country, genre
+
+-- You have to give an overview of the number of customers for a presentation. Generate a table with the total number of customers, the number of customers for each country, and the number of female and male customers for each country.
+
+SELECT 
+	country,
+	gender,
+	COUNT(*)
+FROM customers
+GROUP BY ROLLUP(country, gender)
+ORDER BY country, gender; -- Order the result by country and gender
 
 
+-- Give an overview on the movies available on MovieNow. List the number of movies for different genres and release years.
+
+SELECT 
+	c.country, 
+	m.genre, 
+	AVG(r.rating) AS avg_rating
+FROM renting AS r
+LEFT JOIN movies AS m
+ON m.movie_id = r.movie_id
+LEFT JOIN customers AS c
+ON r.customer_id = c.customer_id
+GROUP BY CUBE(country, genre);
+
+-- Give an overview on the movies available on MovieNow. List the number of movies for different genres and release years.
+
+SELECT 
+	genre,
+	year_of_release,
+	count(*)
+FROM movies
+GROUP BY CUBE(genre, year_of_release)
+ORDER BY year_of_release;
 
 -- The advertising team has a new focus. They want to draw the attention of the customers to dramas. Make a list of all movies that are in the drama genre and have an average rating higher than 9. Give the full movie information.
 
@@ -39,24 +85,26 @@ WHERE movie_id IN -- Select all movies of genre drama with average rating higher
 
 -- Method #1: My instinctual method
 SELECT 
-       name,
-       nationality,
-       year_of_birth
+	name,
+	nationality,
+	year_of_birth
 FROM actors 
 WHERE 
-       nationality!='USA'
-       OR year_of_birth>1990
+	nationality!='USA'
+	OR year_of_birth>1990
      
 -- Method #2: DataCamp's intended method
-SELECT name, 
-       nationality, 
-       year_of_birth
+SELECT 
+	name, 
+	nationality, 
+	year_of_birth
 FROM actors
 WHERE nationality <> 'USA'
 UNION
-SELECT name, 
-       nationality, 
-       year_of_birth
+SELECT 
+	name, 
+	nationality, 
+	year_of_birth
 FROM actors
 WHERE year_of_birth > 1990;
 
