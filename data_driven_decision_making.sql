@@ -1,3 +1,49 @@
+-- In order to analyze the diversity of actors in comedies, first, report a list of actors who play in comedies and then, the number of actors for each nationality playing in comedies.
+
+-- My method
+
+SELECT 
+    nationality,
+    count(*)
+FROM actors 
+WHERE actor_id IN (
+    SELECT actor_id
+    FROM actsin
+    LEFT JOIN movies 
+        USING(movie_id)
+    WHERE genre='Comedy'
+)
+GROUP BY nationality
+ORDER BY count DESC;
+
+-- DataCamp intended method
+
+SELECT 
+    a.nationality,
+    count(*)
+FROM actors AS a
+WHERE EXISTS(
+    SELECT *
+    FROM actsin AS ai
+    LEFT JOIN movies 
+        USING(movie_id)
+    WHERE genre='Comedy'
+    AND ai.actor_id=a.actor_id
+)
+GROUP BY a.nationality
+ORDER BY count DESC;
+
+-- Having active customers is a key performance indicator for MovieNow. Make a list of customers who gave at least one rating.
+
+SELECT *
+FROM customers AS c
+WHERE EXISTS (
+    SELECT *
+    FROM renting AS r
+    WHERE rating IS NOT NULL
+    AND c.customer_id=r.customer_id
+)
+
 -- Report a list of movies that received the most attention on the movie platform, (i.e. report all movies with more than 5 ratings and all movies with an average rating higher than 8).
 
 -- My method #1 (just answering question to get list)
