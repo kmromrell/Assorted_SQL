@@ -1,3 +1,134 @@
+-- Report a list of movies that received the most attention on the movie platform, (i.e. report all movies with more than 5 ratings and all movies with an average rating higher than 8).
+
+-- My method #1 (just answering question to get list)
+SELECT 
+	title,
+	count(*) AS ratings_count,
+	round(avg(rating), 1) AS avg_rating
+FROM renting
+LEFT JOIN movies USING(movie_id)
+GROUP BY title
+HAVING count(*)>5
+	AND avg(rating)>8
+	
+-- My method #2 (getting all movie information for movies that fit this criteria
+	
+SELECT *
+FROM movies
+WHERE movie_id IN (
+	SELECT movie_id
+	FROM renting 
+	GROUP BY movie_id
+	HAVING 
+		count(*)>5
+		AND avg(rating)>8
+)
+
+-- DataCamp intended method (having two different querries, assumedly to come back to later)
+
+WITH high_rating AS(
+	SELECT *
+	FROM movies AS m
+	WHERE 5 < 
+	    (SELECT COUNT(rating)
+	    FROM renting AS r
+	    WHERE r.movie_id = m.movie_id)
+)
+    
+SELECT *
+FROM movies AS m
+INNER JOIN high_rating AS hr
+	ON hr.movie_id=m.movie_id
+WHERE 8<
+	(SELECT avg(rating)
+	FROM renting AS r
+	WHERE r.movie_id = m.movie_id);
+
+
+-- Identify customers who were not satisfied with movies they watched on MovieNow. Report a list of customers with minimum rating smaller than 4.
+
+
+-- My method
+SELECT
+    name
+FROM customers
+WHERE customer_id IN (
+    SELECT DISTINCT customer_id
+    FROM renting
+    GROUP BY customer_id 
+    HAVING min(rating)<4
+)
+
+-- DataCamp intended method
+
+SELECT *
+FROM customers AS c
+WHERE 4 >
+	(SELECT MIN(rating)
+	FROM renting AS r
+	WHERE r.customer_id = c.customer_id);
+
+-- A new advertising campaign is going to focus on customers who rented fewer than 5 movies. Use a correlated query to extract all customer information for the customers of interest.
+
+
+-- My method
+SELECT
+    name
+FROM customers
+WHERE customer_id IN (
+    SELECT customer_id
+    FROM renting
+    GROUP BY customer_id 
+    HAVING count(*)>5
+)
+
+-- DataCamp intended method
+SELECT *
+FROM customers as c
+WHERE 5> 
+	(SELECT count(*)
+	FROM renting as r
+	WHERE r.customer_id = c.customer_id);
+
+-- For the advertising campaign your manager also needs a list of popular movies with high ratings. Report a list of movies with rating above average.
+
+SELECT title
+FROM movies
+WHERE movie_id IN (
+	-- A list of movies that have been watched once and are above a calculated avg
+    SELECT movie_id
+    FROM renting
+    GROUP BY movie_id
+    HAVING 
+        count(*) > 1
+        AND avg(rating) > (
+        	-- Finding the average rating
+            SELECT avg(rating)
+            FROM renting
+        )
+)
+
+-- Report a list of customers who frequently rent movies on MovieNow.
+
+SELECT *
+FROM customers
+WHERE customer_id IN 
+	(SELECT customer_id
+	FROM renting
+	GROUP BY customer_id
+	HAVING count(*)>10);
+	
+-- Your manager wants you to make a list of movies excluding those which are hardly ever watched. This list of movies will be used for advertising. List all movies with more than 5 views.
+
+SELECT DISTINCT movie_id -- Select movie IDs with more than 5 views
+FROM renting
+WHERE movie_id IN (
+    SELECT movie_id
+    FROM renting
+    GROUP BY movie_id
+    HAVING count(*)>5
+)
+
 -- Prepare a  report with KPIs for each country separately. Your manager is interested in the total number of movie rentals, the average rating of all movies and the total revenue for each country since the beginning of 2019.
 
 SELECT 
