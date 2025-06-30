@@ -2,6 +2,70 @@
 
 /*Data for the following queries comes from a fictious online movie rental company, MovieNow, in which customers can rent a movie for 24 hours. It contains tables with information about the movies, customers, rentals, and actors. All queries are listed in reverse order below to show more advanced queries at the top.*/
 
+-- The last aspect you have to analyze are customer preferences for certain actors.
+
+SELECT 
+	a.nationality,
+	a.gender,
+	avg(r.rating) AS avg_rating,
+	count(r.rating) AS n_rating,
+	count(*) AS n_rentals,
+	count(DISTINCT a.actor_id) AS n_actors
+FROM renting AS r
+LEFT JOIN actsin AS ai
+	ON ai.movie_id = r.movie_id
+LEFT JOIN actors AS a
+	ON ai.actor_id = a.actor_id
+WHERE r.movie_id IN ( 
+	SELECT movie_id
+	FROM renting
+	GROUP BY movie_id
+	HAVING COUNT(rating) >=4 )
+AND r.date_renting >= '2018-04-01'
+GROUP BY CUBE(nationality, gender);
+
+--  Now the management considers investing money in movies of the best rated genres.
+
+SELECT 
+	genre,
+	AVG(rating) AS avg_rating,
+	COUNT(rating) AS n_rating,
+	COUNT(*) AS n_rentals,     
+	COUNT(DISTINCT m.movie_id) AS n_movies 
+FROM renting AS r
+LEFT JOIN movies AS m
+	ON m.movie_id = r.movie_id
+WHERE r.movie_id IN ( 
+	SELECT movie_id
+	FROM renting
+	GROUP BY movie_id
+	HAVING COUNT(rating) >= 3 )
+AND r.date_renting >= '2018-01-01'
+GROUP BY genre
+ORDER BY avg_rating DESC;
+
+-- Now you will investigate the average rating of customers aggregated by country and gender.
+
+SELECT 
+	c.country, 
+    c.gender,
+	AVG(r.rating)
+FROM renting AS r
+LEFT JOIN customers AS c
+	ON r.customer_id = c.customer_id
+GROUP BY GROUPING SETS ((country, gender), (country), (gender), ());
+
+
+-- We are interested in how much diversity there is in the nationalities of the actors and how many actors and actresses are in the list.
+
+SELECT 
+    gender,
+    nationality,
+    count(*)
+FROM actors
+GROUP BY GROUPING SETS ((nationality), (gender), ())
+
+
 -- You are asked to study the preferences of genres across countries. Are there particular genres which are more popular in specific countries? Evaluate the preferences of customers by averaging their ratings and counting the number of movies rented from each genre.
 
 SELECT 
@@ -108,7 +172,7 @@ SELECT
 FROM actors
 WHERE year_of_birth > 1990;
 
--- In order to analyze the diversity of actors in comedies, first, report a list of actors who play in comedies and then, the number of actors for each nationality playing in comedies.
+-- In order to analyze the diversity of actors in comedies, first, report a list of actors who play in comedies and then the number of actors for each nationality playing in comedies.
 
 -- My method
 
